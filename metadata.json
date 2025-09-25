@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Gestión Club El Globo",
+  "description": "Un sistema informático para gestionar socios, cobrar cuotas y registrar las actividades deportivas del club 'El Globo' en Rosario.",
+  "requestFramePermissions": []
+}
