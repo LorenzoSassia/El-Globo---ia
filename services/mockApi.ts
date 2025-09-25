@@ -1,136 +1,115 @@
+
 import {
   Member,
   Activity,
-  Locker,
+  MemberCategoryInfo,
   Collector,
-  MemberCategory,
+  CollectionReport,
   CollectionZone,
   MemberStatus,
-  MemberCategoryInfo,
-  CollectionReport
 } from '../types';
 
-let members: Member[] = [
-    { id: 1, firstName: 'Juan', lastName: 'Perez', birthDate: '1985-05-15', joinDate: '2020-01-10', categoryId: MemberCategory.ACTIVO_MASCULINO, collectionZone: CollectionZone.PEREZ, status: MemberStatus.ACTIVE, activities: [1], hasLocker: true, familyGroupId: undefined },
-    { id: 2, firstName: 'Maria', lastName: 'Gomez', birthDate: '1992-08-22', joinDate: '2021-03-20', categoryId: MemberCategory.ACTIVO_FEMENINO, collectionZone: CollectionZone.GARCIA, status: MemberStatus.ACTIVE, activities: [2], hasLocker: false, familyGroupId: undefined },
-    { id: 3, firstName: 'Carlos', lastName: 'Rodriguez', birthDate: '2005-11-30', joinDate: '2022-02-15', categoryId: MemberCategory.CADETE, collectionZone: CollectionZone.RODRIGUEZ, status: MemberStatus.DELINQUENT, activities: [1], hasLocker: false, familyGroupId: undefined },
-];
-let activities: Activity[] = [
-    { id: 1, name: 'Fútbol', cost: 500, schedule: 'vespertino' },
-    { id: 2, name: 'Natación', cost: 700, schedule: 'matutino' },
-];
-let lockers: Locker[] = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, memberId: i === 0 ? 1 : null }));
-let collectors: Collector[] = [
-    { id: 1, name: 'Cobrador Perez', zone: CollectionZone.PEREZ },
-    { id: 2, name: 'Cobrador Garcia', zone: CollectionZone.GARCIA },
-    { id: 3, name: 'Cobrador Rodriguez', zone: CollectionZone.RODRIGUEZ },
+let nextMemberId = 6;
+let nextActivityId = 5;
+
+let mockMembers: Member[] = [
+  { id: 1, firstName: 'Juan', lastName: 'Perez', status: MemberStatus.ACTIVE, joinDate: '2022-01-15', birthDate: '1990-05-20', categoryId: 'adulto', activities: [1, 3], hasLocker: true },
+  { id: 2, firstName: 'Maria', lastName: 'Gomez', status: MemberStatus.ACTIVE, joinDate: '2021-11-20', birthDate: '1985-08-10', categoryId: 'adulto_mayor', activities: [2], hasLocker: false },
+  { id: 3, firstName: 'Carlos', lastName: 'Lopez', status: MemberStatus.DELINQUENT, joinDate: '2023-02-10', birthDate: '2005-03-30', categoryId: 'cadete', activities: [1, 4], hasLocker: true },
+  { id: 4, firstName: 'Ana', lastName: 'Martinez', status: MemberStatus.ACTIVE, joinDate: '2023-05-01', birthDate: '1995-12-01', categoryId: 'adulto', activities: [2, 3], hasLocker: false },
+  { id: 5, firstName: 'Luis', lastName: 'Rodriguez', status: MemberStatus.INACTIVE, joinDate: '2020-07-18', birthDate: '1978-02-25', categoryId: 'adulto', activities: [], hasLocker: false },
 ];
 
-const memberCategories: MemberCategoryInfo[] = [
-  { id: MemberCategory.CADETE, name: 'Cadete', fee: 1000 },
-  { id: MemberCategory.ACTIVO_MASCULINO, name: 'Activo Masculino', fee: 2000 },
-  { id: MemberCategory.ACTIVO_FEMENINO, name: 'Activo Femenino', fee: 1800 },
-  { id: MemberCategory.VITALICIO, name: 'Vitalicio', fee: 0 },
-  { id: MemberCategory.GRUPO_FAMILIAR, name: 'Grupo Familiar', fee: 3500 },
+let mockActivities: Activity[] = [
+  { id: 1, name: 'Natación', cost: 1500, schedule: 'matutino' },
+  { id: 2, name: 'Gimnasio', cost: 2000, schedule: 'vespertino' },
+  { id: 3, name: 'Tenis', cost: 2500, schedule: 'matutino' },
+  { id: 4, name: 'Yoga', cost: 1800, schedule: 'nocturno' },
 ];
 
-let nextMemberId = members.length > 0 ? Math.max(...members.map(m => m.id)) + 1 : 1;
-let nextActivityId = activities.length > 0 ? Math.max(...activities.map(a => a.id)) + 1 : 1;
+const mockCategories: MemberCategoryInfo[] = [
+    { id: 'infantil', name: 'Infantil (hasta 12 años)', fee: 1000 },
+    { id: 'cadete', name: 'Cadete (13 a 17 años)', fee: 1500 },
+    { id: 'adulto', name: 'Adulto (18 a 64 años)', fee: 2500 },
+    { id: 'adulto_mayor', name: 'Adulto Mayor (65+ años)', fee: 1200 },
+];
+
+const mockCollectors: Collector[] = [
+    { id: 1, name: 'Roberto Carlos', zone: CollectionZone.NORTE },
+    { id: 2, name: 'Juana de Arco', zone: CollectionZone.SUR },
+    { id: 3, name: 'Pedro Picapiedra', zone: CollectionZone.CENTRO },
+];
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export const mockApi = {
-  // Members
   getMembers: async (): Promise<Member[]> => {
     await delay(500);
-    return [...members];
+    return [...mockMembers];
   },
   getMember: async (id: number): Promise<Member | undefined> => {
     await delay(300);
-    return members.find(m => m.id === id);
+    return mockMembers.find(m => m.id === id);
   },
-  addMember: async (memberData: Omit<Member, 'id'>): Promise<Member> => {
+  addMember: async (member: Omit<Member, 'id'>): Promise<Member> => {
     await delay(500);
-    const newMember: Member = { ...memberData, id: nextMemberId++ };
-    members.push(newMember);
+    const newMember = { ...member, id: nextMemberId++ };
+    mockMembers.push(newMember);
     return newMember;
   },
-  updateMember: async (memberData: Member): Promise<Member> => {
+  updateMember: async (member: Member): Promise<Member> => {
     await delay(500);
-    members = members.map(m => (m.id === memberData.id ? memberData : m));
-    return memberData;
+    mockMembers = mockMembers.map(m => m.id === member.id ? member : m);
+    return member;
   },
   deleteMember: async (id: number): Promise<void> => {
     await delay(500);
-    members = members.filter(m => m.id !== id);
+    mockMembers = mockMembers.filter(m => m.id !== id);
   },
-
-  // Activities
   getActivities: async (): Promise<Activity[]> => {
-    await delay(500);
-    return [...activities];
+    await delay(400);
+    return [...mockActivities];
   },
-  addActivity: async (activityData: Omit<Activity, 'id'>): Promise<Activity> => {
+  addActivity: async (activity: Omit<Activity, 'id'>): Promise<Activity> => {
     await delay(500);
-    const newActivity: Activity = { ...activityData, id: nextActivityId++ };
-    activities.push(newActivity);
+    const newActivity = { ...activity, id: nextActivityId++ };
+    mockActivities.push(newActivity);
     return newActivity;
   },
-  updateActivity: async (activityData: Activity): Promise<Activity> => {
+  updateActivity: async (activity: Activity): Promise<Activity> => {
     await delay(500);
-    activities = activities.map(a => (a.id === activityData.id ? activityData : a));
-    return activityData;
+    mockActivities = mockActivities.map(a => a.id === activity.id ? activity : a);
+    return activity;
   },
   deleteActivity: async (id: number): Promise<void> => {
     await delay(500);
-    activities = activities.filter(a => a.id !== id);
+    mockActivities = mockActivities.filter(a => a.id !== id);
   },
-
-  // Lockers
-  getLockers: async (): Promise<Locker[]> => {
-    await delay(500);
-    return [...lockers];
-  },
-
-  // Collectors
-  getCollectors: async (): Promise<Collector[]> => {
-      await delay(500);
-      return [...collectors];
-  },
-  
   getMemberCategories: async (): Promise<MemberCategoryInfo[]> => {
-      await delay(200);
-      return [...memberCategories];
+    await delay(200);
+    return [...mockCategories];
   },
-
+  getCollectors: async (): Promise<Collector[]> => {
+      await delay(200);
+      return [...mockCollectors];
+  },
   getCollectionReport: async (collectorId: number): Promise<CollectionReport> => {
-    await delay(700);
-    const collector = collectors.find(c => c.id === collectorId);
-    if (!collector) throw new Error("Collector not found");
-    const membersInZone = members.filter(m => m.collectionZone === collector.zone && m.status === MemberStatus.ACTIVE);
-    
-    let totalAmount = 0;
-    membersInZone.forEach(member => {
-        const category = memberCategories.find(c => c.id === member.categoryId);
-        if (category) {
-            totalAmount += category.fee;
-        }
-        member.activities.forEach(activityId => {
-            const activity = activities.find(a => a.id === activityId);
-            if (activity) {
-                totalAmount += activity.cost;
-            }
-        });
-    });
+      await delay(1000);
+      const collector = mockCollectors.find(c => c.id === collectorId);
+      if (!collector) throw new Error("Collector not found");
 
-    const commission = totalAmount * 0.1; // 10% commission
-    const net = totalAmount - commission;
-
-    return {
-        collectorId,
-        amount: totalAmount,
-        commission,
-        net,
-    };
+      // Super simplified logic: just sum fees of some members
+      const amount = mockMembers
+        .filter(m => m.status !== MemberStatus.INACTIVE)
+        .slice(0, 3)
+        .reduce((sum, member) => {
+            const category = mockCategories.find(c => c.id === member.categoryId);
+            return sum + (category?.fee || 0);
+        }, 0);
+        
+      const commission = amount * 0.10;
+      const net = amount - commission;
+      
+      return { collectorId, amount, commission, net };
   }
 };

@@ -1,33 +1,31 @@
+
 import React from 'react';
-// Fix: Correct import path from '../App' to './App'
-import { View } from '../App';
-import { ChartBarIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, DocumentTextIcon, GlobeAltIcon, LogoutIcon, UserCircleIcon } from './icons';
 import { useAuth } from '../context/AuthContext';
+import { View } from '../App';
 import { UserRole } from '../types';
+import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon } from './icons';
 
 interface SidebarProps {
   activeView: View;
   setActiveView: (view: View) => void;
 }
 
-interface NavItemProps {
+const NavItem: React.FC<{
   view: View;
   label: string;
   icon: React.ReactNode;
   activeView: View;
   onClick: (view: View) => void;
-}
-
-const NavItem: React.FC<NavItemProps> = ({ view, label, icon, activeView, onClick }) => (
-  <li className="mb-2">
+}> = ({ view, label, icon, activeView, onClick }) => (
+  <li>
     <a
       href="#"
       onClick={(e) => {
         e.preventDefault();
         onClick(view);
       }}
-      className={`flex items-center p-3 text-base font-normal rounded-lg transition duration-75 hover:bg-gray-700 ${
-        activeView === view ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'
+      className={`flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-700 ${
+        activeView === view ? 'bg-gray-700 text-white' : 'text-gray-400'
       }`}
     >
       {icon}
@@ -39,49 +37,57 @@ const NavItem: React.FC<NavItemProps> = ({ view, label, icon, activeView, onClic
 const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
   const { user, logout } = useAuth();
 
-  const allNavItems = [
-    { view: 'dashboard' as View, label: 'Dashboard', icon: <ChartBarIcon />, roles: [UserRole.ADMIN] },
-    { view: 'socios' as View, label: 'Socios', icon: <UsersIcon />, roles: [UserRole.ADMIN] },
-    { view: 'cobranzas' as View, label: 'Cobranzas', icon: <CurrencyDollarIcon />, roles: [UserRole.ADMIN, UserRole.COBRADOR] },
-    { view: 'actividades' as View, label: 'Actividades', icon: <SparklesIcon />, roles: [UserRole.ADMIN, UserRole.SOCIO] },
-    { view: 'reportes' as View, label: 'Reportes', icon: <DocumentTextIcon />, roles: [UserRole.ADMIN] },
-    { view: 'perfil' as View, label: 'Mi Perfil', icon: <UserCircleIcon />, roles: [UserRole.SOCIO] }
+  const adminLinks: View[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'reportes'];
+  const cobradorLinks: View[] = ['dashboard', 'cobranzas', 'reportes'];
+  const socioLinks: View[] = ['perfil', 'actividades'];
+
+  let availableLinks: View[] = [];
+  if (user?.role === UserRole.ADMIN) {
+    availableLinks = adminLinks;
+  } else if (user?.role === UserRole.COBRADOR) {
+    availableLinks = cobradorLinks;
+  } else if (user?.role === UserRole.SOCIO) {
+    availableLinks = socioLinks;
+  }
+  
+  const allLinks: { view: View; label: string; icon: React.ReactNode }[] = [
+      { view: 'dashboard', label: 'Dashboard', icon: <HomeIcon /> },
+      { view: 'socios', label: 'Socios', icon: <UsersIcon /> },
+      { view: 'cobranzas', label: 'Cobranzas', icon: <CurrencyDollarIcon /> },
+      { view: 'actividades', label: 'Actividades', icon: <SparklesIcon /> },
+      { view: 'reportes', label: 'Reportes', icon: <ChartBarIcon /> },
+      { view: 'perfil', label: 'Mi Perfil', icon: <UserCircleIcon /> },
   ];
-
-  const navItems = allNavItems.filter(item => user && item.roles.includes(user.role));
-
 
   return (
     <aside className="w-64" aria-label="Sidebar">
-      <div className="flex flex-col h-full p-4 bg-gray-800">
-        <div className="flex items-center pb-4 mb-4 border-b border-gray-600">
-          <GlobeAltIcon className="w-8 h-8 text-white mr-3" />
-          <span className="text-xl font-semibold text-white">Club El Globo</span>
+      <div className="flex flex-col h-full px-3 py-4 overflow-y-auto bg-gray-800">
+        <div className="mb-6 text-2xl font-semibold text-center text-white">
+          Club Manager
         </div>
-        <ul className="space-y-2 flex-grow">
-          {navItems.map((item) => (
-            <NavItem
-              key={item.view}
-              view={item.view}
-              label={item.label}
-              icon={item.icon}
-              activeView={activeView}
-              onClick={setActiveView}
-            />
+        <ul className="space-y-2">
+          {allLinks
+            .filter(link => availableLinks.includes(link.view))
+            .map(link => (
+              <NavItem
+                key={link.view}
+                view={link.view}
+                label={link.label}
+                icon={link.icon}
+                activeView={activeView}
+                onClick={setActiveView}
+              />
           ))}
         </ul>
-        <div className="pt-2 border-t border-gray-700">
-             <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                logout();
-              }}
-              className={`flex items-center p-3 text-base font-normal rounded-lg transition duration-75 text-gray-400 hover:bg-gray-700 hover:text-white`}
-            >
-              <LogoutIcon />
-              <span className="ml-3">Cerrar Sesión</span>
-            </a>
+        <div className="mt-auto">
+           <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); logout(); }}
+            className="flex items-center p-2 text-base font-normal text-gray-400 rounded-lg hover:bg-gray-700"
+          >
+            <LogoutIcon />
+            <span className="ml-3">Cerrar Sesión</span>
+          </a>
         </div>
       </div>
     </aside>

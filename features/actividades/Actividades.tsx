@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity } from '../../types';
+import { Activity, Member } from '../../types';
 import { mockApi } from '../../services/mockApi';
 import ActividadModal from './ActividadModal';
 import { PlusIcon, PencilIcon, TrashIcon } from '../../components/icons';
@@ -11,14 +11,37 @@ const Actividades: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [currentMember, setCurrentMember] = useState<Member | null>(null);
 
   useEffect(() => {
     loadActivities();
-  }, []);
+    loadMemberData();
+  }, [user]);
 
   const loadActivities = async () => {
     const data = await mockApi.getActivities();
     setActivities(data);
+  };
+
+  const loadMemberData = async () => {
+      if (user?.role === UserRole.SOCIO && user.memberId) {
+          const memberData = await mockApi.getMember(user.memberId);
+          setCurrentMember(memberData || null);
+      }
+  };
+  
+  const handleEnrollmentToggle = async (activityId: number) => {
+      if (!currentMember) return;
+      
+      const isEnrolled = currentMember.activities.includes(activityId);
+      const updatedActivities = isEnrolled
+          ? currentMember.activities.filter(id => id !== activityId)
+          : [...currentMember.activities, activityId];
+          
+      const updatedMember = { ...currentMember, activities: updatedActivities };
+      
+      await mockApi.updateMember(updatedMember);
+      setCurrentMember(updatedMember);
   };
 
   const handleOpenModal = (activity: Activity | null = null) => {
@@ -49,6 +72,7 @@ const Actividades: React.FC = () => {
   };
 
   const isAdmin = user?.role === UserRole.ADMIN;
+  const isSocio = user?.role === UserRole.SOCIO;
 
   return (
     <div>
@@ -70,7 +94,7 @@ const Actividades: React.FC = () => {
               <th scope="col" className="px-6 py-3">Nombre</th>
               <th scope="col" className="px-6 py-3">Costo</th>
               <th scope="col" className="px-6 py-3">Horario</th>
-              {isAdmin && <th scope="col" className="px-6 py-3">Acciones</th>}
+              {(isAdmin || isSocio) && <th scope="col" className="px-6 py-3">Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -80,10 +104,28 @@ const Actividades: React.FC = () => {
                 <td className="px-6 py-4 text-white">{activity.name}</td>
                 <td className="px-6 py-4">${activity.cost.toLocaleString()}</td>
                 <td className="px-6 py-4 capitalize">{activity.schedule}</td>
-                {isAdmin && (
-                    <td className="flex items-center px-6 py-4 space-x-3">
-                    <button onClick={() => handleOpenModal(activity)} className="text-blue-500 hover:text-blue-400"><PencilIcon/></button>
-                    <button onClick={() => handleDeleteActivity(activity.id)} className="text-red-500 hover:text-red-400"><TrashIcon/></button>
+                {(isAdmin || isSocio) && (
+                    <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                            {isAdmin && (
+                                <>
+                                <button onClick={() => handleOpenModal(activity)} className="text-blue-500 hover:text-blue-400"><PencilIcon/></button>
+                                <button onClick={() => handleDeleteActivity(activity.id)} className="text-red-500 hover:text-red-400"><TrashIcon/></button>
+                                </>
+                            )}
+                            {isSocio && currentMember && (
+                                <button 
+                                    onClick={() => handleEnrollmentToggle(activity.id)}
+                                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                                        currentMember.activities.includes(activity.id)
+                                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                                            : 'bg-green-600 hover:bg-green-700 text-white'
+                                    }`}
+                                >
+                                    {currentMember.activities.includes(activity.id) ? 'Darse de baja' : 'Inscribirse'}
+                                </button>
+                            )}
+                        </div>
                     </td>
                 )}
               </tr>

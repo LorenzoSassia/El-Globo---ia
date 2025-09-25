@@ -1,83 +1,90 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
-import { GlobeAltIcon } from '../../components/icons';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin'); // Mock password
-  const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, you would validate password
-    login(role, username);
+  const handleLogin = (role: UserRole) => {
+    if (username.trim() && password.trim()) {
+      login(role, username, password);
+    } else {
+      alert('Por favor ingrese un nombre de usuario y contraseña.');
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <div className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-lg shadow-lg">
-        <div className="flex flex-col items-center">
-          <GlobeAltIcon className="w-16 h-16 text-white mb-4" />
-          <h1 className="text-3xl font-bold text-white">Club El Globo</h1>
-          <p className="text-gray-400">Iniciar sesión en su cuenta</p>
+        <div>
+          <h2 className="text-3xl font-extrabold text-center text-white">
+            Club Manager
+          </h2>
+          <p className="mt-2 text-center text-gray-400">
+            Inicie sesión para continuar
+          </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+        <div className="space-y-6">
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-300">
-              Rol
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
-              className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={UserRole.ADMIN}>Administrador</option>
-              <option value={UserRole.COBRADOR}>Cobrador</option>
-              <option value={UserRole.SOCIO}>Socio</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-              Usuario
+            <label htmlFor="username" className="sr-only">
+              Nombre de usuario
             </label>
             <input
               id="username"
+              name="username"
               type="text"
+              required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin"
+              className="relative block w-full px-3 py-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 rounded-md appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Nombre de usuario (ej: Admin)"
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-300"
-            >
+             <label htmlFor="password" className="sr-only">
               Contraseña
             </label>
             <input
               id="password"
+              name="password"
               type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin"
+              className="relative block w-full px-3 py-2 mt-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 rounded-md appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Contraseña"
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800"
-          >
-            Iniciar Sesión
-          </button>
-        </form>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-center text-gray-400">
+              Seleccione un rol para simular el inicio de sesión:
+            </p>
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={() => handleLogin(UserRole.ADMIN)}
+                className="w-full px-4 py-2 font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Ingresar como Admin
+              </button>
+              <button
+                onClick={() => handleLogin(UserRole.COBRADOR)}
+                className="w-full px-4 py-2 font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                Ingresar como Cobrador
+              </button>
+              <button
+                onClick={() => handleLogin(UserRole.SOCIO)}
+                className="w-full px-4 py-2 font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Ingresar como Socio
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

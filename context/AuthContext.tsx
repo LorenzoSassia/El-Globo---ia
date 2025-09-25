@@ -3,7 +3,7 @@ import { User, UserRole } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  login: (role: UserRole, username: string) => void;
+  login: (role: UserRole, username: string, password?: string) => void;
   logout: () => void;
 }
 
@@ -12,8 +12,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (role: UserRole, username: string) => {
-    // Mock login logic
+  const login = (role: UserRole, username: string, password?: string) => {
+    // Mock login logic - in a real app, you'd validate username and password
     const mockUser: User = { username, role };
     if (role === UserRole.SOCIO) {
         // In a real app, you'd fetch the member ID based on username/pass
