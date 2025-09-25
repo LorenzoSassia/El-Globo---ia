@@ -1,4 +1,3 @@
-
 import {
   Member,
   Activity,
@@ -7,17 +6,19 @@ import {
   CollectionReport,
   CollectionZone,
   MemberStatus,
+  Payment,
 } from '../types';
 
 let nextMemberId = 6;
 let nextActivityId = 5;
+let nextPaymentId = 1;
 
 let mockMembers: Member[] = [
-  { id: 1, firstName: 'Juan', lastName: 'Perez', status: MemberStatus.ACTIVE, joinDate: '2022-01-15', birthDate: '1990-05-20', categoryId: 'adulto', activities: [1, 3], hasLocker: true },
-  { id: 2, firstName: 'Maria', lastName: 'Gomez', status: MemberStatus.ACTIVE, joinDate: '2021-11-20', birthDate: '1985-08-10', categoryId: 'adulto_mayor', activities: [2], hasLocker: false },
-  { id: 3, firstName: 'Carlos', lastName: 'Lopez', status: MemberStatus.DELINQUENT, joinDate: '2023-02-10', birthDate: '2005-03-30', categoryId: 'cadete', activities: [1, 4], hasLocker: true },
-  { id: 4, firstName: 'Ana', lastName: 'Martinez', status: MemberStatus.ACTIVE, joinDate: '2023-05-01', birthDate: '1995-12-01', categoryId: 'adulto', activities: [2, 3], hasLocker: false },
-  { id: 5, firstName: 'Luis', lastName: 'Rodriguez', status: MemberStatus.INACTIVE, joinDate: '2020-07-18', birthDate: '1978-02-25', categoryId: 'adulto', activities: [], hasLocker: false },
+  { id: 1, firstName: 'Juan', lastName: 'Perez', status: MemberStatus.ACTIVE, joinDate: '2022-01-15', birthDate: '1990-05-20', categoryId: 'adulto', activities: [1, 3], hasLocker: true, lockerNumber: 101, zone: CollectionZone.CENTRO },
+  { id: 2, firstName: 'Maria', lastName: 'Gomez', status: MemberStatus.ACTIVE, joinDate: '2021-11-20', birthDate: '1985-08-10', categoryId: 'adulto_mayor', activities: [2], hasLocker: false, zone: CollectionZone.NORTE },
+  { id: 3, firstName: 'Carlos', lastName: 'Lopez', status: MemberStatus.DELINQUENT, joinDate: '2023-02-10', birthDate: '2005-03-30', categoryId: 'cadete', activities: [1, 4], hasLocker: true, lockerNumber: 102, zone: CollectionZone.SUR },
+  { id: 4, firstName: 'Ana', lastName: 'Martinez', status: MemberStatus.ACTIVE, joinDate: '2023-05-01', birthDate: '1995-12-01', categoryId: 'adulto', activities: [2, 3], hasLocker: false, zone: CollectionZone.NORTE },
+  { id: 5, firstName: 'Luis', lastName: 'Rodriguez', status: MemberStatus.DELINQUENT, joinDate: '2020-07-18', birthDate: '1978-02-25', categoryId: 'adulto', activities: [], hasLocker: false, zone: CollectionZone.CENTRO },
 ];
 
 let mockActivities: Activity[] = [
@@ -39,6 +40,8 @@ const mockCollectors: Collector[] = [
     { id: 2, name: 'Juana de Arco', zone: CollectionZone.SUR },
     { id: 3, name: 'Pedro Picapiedra', zone: CollectionZone.CENTRO },
 ];
+
+let mockPayments: Payment[] = [];
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -93,15 +96,19 @@ export const mockApi = {
       await delay(200);
       return [...mockCollectors];
   },
+  getCollectorByName: async (name: string): Promise<Collector | undefined> => {
+    await delay(100);
+    return mockCollectors.find(c => c.name.toLowerCase() === name.toLowerCase());
+  },
   getCollectionReport: async (collectorId: number): Promise<CollectionReport> => {
       await delay(1000);
       const collector = mockCollectors.find(c => c.id === collectorId);
       if (!collector) throw new Error("Collector not found");
 
-      // Super simplified logic: just sum fees of some members
-      const amount = mockMembers
-        .filter(m => m.status !== MemberStatus.INACTIVE)
-        .slice(0, 3)
+      const assignedMembers = mockMembers.filter(m => m.zone === collector.zone);
+
+      const amount = assignedMembers
+        .filter(m => m.status === MemberStatus.DELINQUENT)
         .reduce((sum, member) => {
             const category = mockCategories.find(c => c.id === member.categoryId);
             return sum + (category?.fee || 0);
@@ -111,5 +118,20 @@ export const mockApi = {
       const net = amount - commission;
       
       return { collectorId, amount, commission, net };
+  },
+  getPayments: async (): Promise<Payment[]> => {
+      await delay(300);
+      return [...mockPayments];
+  },
+  recordPayment: async (paymentData: Omit<Payment, 'id'>): Promise<Payment> => {
+      await delay(600);
+      const newPayment = { ...paymentData, id: nextPaymentId++ };
+      mockPayments.push(newPayment);
+
+      const memberIndex = mockMembers.findIndex(m => m.id === paymentData.memberId);
+      if (memberIndex !== -1) {
+          mockMembers[memberIndex].status = MemberStatus.ACTIVE;
+      }
+      return newPayment;
   }
 };

@@ -73,3 +73,9 @@ export const LogoutIcon: React.FC = () => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </IconWrapper>
 );
+
+export const ArchiveIcon: React.FC = () => (
+    <IconWrapper>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+    </IconWrapper>
+);

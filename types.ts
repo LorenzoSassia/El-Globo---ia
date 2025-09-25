@@ -1,4 +1,3 @@
-
 export enum UserRole {
   ADMIN = 'admin',
   COBRADOR = 'cobrador',
@@ -9,6 +8,8 @@ export interface User {
   username: string;
   role: UserRole;
   memberId?: number;
+  collectorId?: number;
+  zone?: CollectionZone;
 }
 
 export enum MemberStatus {
@@ -27,6 +28,8 @@ export interface Member {
   categoryId: string;
   activities: number[];
   hasLocker: boolean;
+  lockerNumber?: number;
+  zone: CollectionZone;
 }
 
 export interface Activity {
@@ -61,4 +64,12 @@ export interface CollectionReport {
     amount: number;
     commission: number;
     net: number;
+}
+
+export interface Payment {
+    id: number;
+    memberId: number;
+    collectorId: number;
+    amount: number;
+    date: string; // "YYYY-MM-DD"
 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { View } from '../App';
 import { UserRole } from '../types';
-import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon } from './icons';
+import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon, ArchiveIcon } from './icons';
 
 interface SidebarProps {
   activeView: View;
@@ -37,7 +37,7 @@ const NavItem: React.FC<{
 const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
   const { user, logout } = useAuth();
 
-  const adminLinks: View[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'reportes'];
+  const adminLinks: View[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'casilleros'];
   const cobradorLinks: View[] = ['dashboard', 'cobranzas', 'reportes'];
   const socioLinks: View[] = ['perfil', 'actividades'];
 
@@ -55,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
       { view: 'socios', label: 'Socios', icon: <UsersIcon /> },
       { view: 'cobranzas', label: 'Cobranzas', icon: <CurrencyDollarIcon /> },
       { view: 'actividades', label: 'Actividades', icon: <SparklesIcon /> },
+      { view: 'casilleros', label: 'Casilleros', icon: <ArchiveIcon /> },
       { view: 'reportes', label: 'Reportes', icon: <ChartBarIcon /> },
       { view: 'perfil', label: 'Mi Perfil', icon: <UserCircleIcon /> },
   ];

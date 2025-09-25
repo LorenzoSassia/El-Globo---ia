@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-lg shadow-lg">
         <div>
           <h2 className="text-3xl font-extrabold text-center text-white">
-            Club Manager
+            Club El Globo
           </h2>
           <p className="mt-2 text-center text-gray-400">
             Inicie sesión para continuar

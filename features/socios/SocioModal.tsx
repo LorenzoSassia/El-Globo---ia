@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Member, MemberCategoryInfo, Activity, MemberStatus } from '../../types';
+import { Member, MemberCategoryInfo, Activity, MemberStatus, CollectionZone } from '../../types';
 import { mockApi } from '../../services/mockApi';
 
 interface SocioModalProps {
@@ -11,15 +10,17 @@ interface SocioModalProps {
 }
 
 const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member }) => {
-  const initialFormState = {
+  const initialFormState: Omit<Member, 'id'> = {
     firstName: '',
     lastName: '',
     birthDate: '',
     joinDate: new Date().toISOString().split('T')[0],
     status: MemberStatus.ACTIVE,
     categoryId: '',
-    activities: [] as number[],
+    activities: [],
     hasLocker: false,
+    lockerNumber: undefined,
+    zone: CollectionZone.CENTRO,
   };
   
   const [formData, setFormData] = useState<Omit<Member, 'id'>>(initialFormState);
@@ -40,6 +41,8 @@ const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member
           categoryId: member.categoryId,
           activities: [...member.activities],
           hasLocker: member.hasLocker,
+          lockerNumber: member.lockerNumber,
+          zone: member.zone,
         });
       } else {
         setFormData(initialFormState);
@@ -53,9 +56,14 @@ const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
         const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: checked }));
+        if (name === 'hasLocker') {
+            setFormData(prev => ({ ...prev, hasLocker: checked, lockerNumber: checked ? prev.lockerNumber : undefined }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        }
     } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const val = (name === 'zone' || name === 'lockerNumber') ? (value === '' ? undefined : Number(value)) : value;
+        setFormData(prev => ({ ...prev, [name]: val }));
     }
   };
   
@@ -70,6 +78,10 @@ const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+     if (formData.hasLocker && (formData.lockerNumber === undefined || formData.lockerNumber <= 0)) {
+        alert('Por favor, ingrese un número de casillero válido.');
+        return;
+    }
     if (member) {
         onSave({ ...formData, id: member.id });
     } else {
@@ -94,6 +106,12 @@ const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member
               <option value="">Seleccione Categoría</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+             <select name="zone" value={formData.zone} onChange={handleChange} className="col-span-1 md:col-span-2 input-style" required>
+                <option value="">Seleccione Zona de Cobranza</option>
+                {Object.keys(CollectionZone).filter(key => !isNaN(Number(key))).map(key => (
+                    <option key={key} value={key}>{CollectionZone[Number(key)]}</option>
+                ))}
+            </select>
           </div>
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-300">Actividades</label>
@@ -110,6 +128,11 @@ const SocioModal: React.FC<SocioModalProps> = ({ isOpen, onClose, onSave, member
              <input type="checkbox" name="hasLocker" checked={formData.hasLocker} onChange={handleChange} className="w-4 h-4 text-blue-600 bg-gray-900 border-gray-600 rounded focus:ring-blue-500" />
              <label className="ml-2 text-white">Tiene Locker?</label>
           </div>
+          {formData.hasLocker && (
+            <div className="mt-2">
+                <input type="number" name="lockerNumber" value={formData.lockerNumber || ''} onChange={handleChange} placeholder="Número de Casillero" className="input-style" required />
+            </div>
+          )}
           <div className="flex justify-end pt-4 space-x-2">
             <button type="button" onClick={onClose} className="px-4 py-2 font-semibold text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
             <button type="submit" className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">Guardar</button>

@@ -31,7 +31,7 @@ const SocioInfoModal: React.FC<SocioInfoModalProps> = ({ isOpen, onClose, member
                 <p><strong>Fecha de Nacimiento:</strong> {member.birthDate}</p>
                 <p><strong>Categoría:</strong> {getCategoryName(member.categoryId)}</p>
                 <p><strong>Estado:</strong> <span className={`font-semibold ${member.status === 'activo' ? 'text-green-400' : 'text-yellow-400'}`}>{member.status.toUpperCase()}</span></p>
-                <p><strong>Locker:</strong> {member.hasLocker ? 'Sí' : 'No'}</p>
+                <p><strong>Locker:</strong> {member.hasLocker ? `Sí (N° ${member.lockerNumber || 'N/A'})` : 'No'}</p>
            </div>
            <div className="pt-4 mt-4 border-t border-gray-700">
                 <h3 className="font-semibold text-white">Actividades Inscritas</h3>

@@ -7,9 +7,10 @@ import Actividades from './features/actividades/Actividades';
 import Reportes from './features/reportes/Reportes';
 import MiPerfil from './features/perfil/MiPerfil';
 import Login from './features/auth/Login';
+import Casilleros from './features/casilleros/Casilleros';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-export type View = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil';
+export type View = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -31,6 +32,8 @@ const AppContent: React.FC = () => {
         return <Actividades />;
       case 'reportes':
         return <Reportes />;
+      case 'casilleros':
+        return <Casilleros />;
       case 'perfil':
         return <MiPerfil />;
       default:
