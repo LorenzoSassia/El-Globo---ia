@@ -9,16 +9,22 @@ import MiPerfil from './features/perfil/MiPerfil';
 import Login from './features/auth/Login';
 import Casilleros from './features/casilleros/Casilleros';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import LandingPage from './features/landing/LandingPage';
 
 export type View = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
   const [activeView, setActiveView] = useState<View>('dashboard');
+  const [showLogin, setShowLogin] = useState(false);
 
   if (!user) {
-    return <Login />;
+    if (showLogin) {
+      return <Login onBack={() => setShowLogin(false)} />;
+    }
+    return <LandingPage onLoginClick={() => setShowLogin(true)} />;
   }
+
 
   const renderView = () => {
     switch (activeView) {
