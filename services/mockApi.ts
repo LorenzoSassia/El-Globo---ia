@@ -1,138 +1,251 @@
-
+// FIX: Replaced outdated English type names (Member, Activity, etc.) with the correct Spanish types from ../types.ts
 import {
   Socio,
   Actividad,
-  InfoCategoriaSocio,
+  Categoria,
   Cobrador,
   ReporteCobranza,
-  ZonaCobranza,
+  Zona,
   EstadoSocio,
-  Pago,
+  Cobranza,
+  Usuario,
+  Casillero,
 } from '../types';
 
-let siguienteSocioId = 6;
-let siguienteActividadId = 5;
-let siguientePagoId = 1;
+let nextSocioId = 6;
+let nextActivityId = 5;
+let nextCobranzaId = 1;
 
-let sociosMock: Socio[] = [
-  { id: 1, nombre: 'Juan', apellido: 'Perez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2022-01-15', fechaNacimiento: '1990-05-20', categoriaId: 'adulto', actividades: [1, 3], tieneCasillero: true, numeroCasillero: 101, zona: ZonaCobranza.CENTRO },
-  { id: 2, nombre: 'Maria', apellido: 'Gomez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2021-11-20', fechaNacimiento: '1985-08-10', categoriaId: 'adulto_mayor', actividades: [2], tieneCasillero: false, zona: ZonaCobranza.NORTE },
-  { id: 3, nombre: 'Carlos', apellido: 'Lopez', estado: EstadoSocio.MOROSO, fechaIngreso: '2023-02-10', fechaNacimiento: '2005-03-30', categoriaId: 'cadete', actividades: [1, 4], tieneCasillero: true, numeroCasillero: 102, zona: ZonaCobranza.SUR },
-  { id: 4, nombre: 'Ana', apellido: 'Martinez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2023-05-01', fechaNacimiento: '1995-12-01', categoriaId: 'adulto', actividades: [2, 3], tieneCasillero: false, zona: ZonaCobranza.NORTE },
-  { id: 5, nombre: 'Luis', apellido: 'Rodriguez', estado: EstadoSocio.MOROSO, fechaIngreso: '2020-07-18', fechaNacimiento: '1978-02-25', categoriaId: 'adulto', actividades: [], tieneCasillero: false, zona: ZonaCobranza.CENTRO },
+// --- MOCK DATA (Updated to match new types) ---
+
+const mockZonas: Zona[] = [
+    { id: 1, zona: 'Centro' },
+    { id: 2, zona: 'Norte' },
+    { id: 3, zona: 'Sur' },
 ];
 
-let actividadesMock: Actividad[] = [
-  { id: 1, nombre: 'Natación', costo: 1500, horario: 'matutino' },
-  { id: 2, nombre: 'Gimnasio', costo: 2000, horario: 'vespertino' },
-  { id: 3, nombre: 'Tenis', costo: 2500, horario: 'matutino' },
-  { id: 4, nombre: 'Yoga', costo: 1800, horario: 'nocturno' },
+let mockActividades: Actividad[] = [
+  // FIX: field `schedule` renamed to `turno` and values updated
+  { id: 1, nombre: 'Natación', costo: 1500, turno: 'Mañana' },
+  { id: 2, nombre: 'Gimnasio', costo: 2000, turno: 'Tarde' },
+  { id: 3, nombre: 'Tenis', costo: 2500, turno: 'Mañana' },
+  { id: 4, nombre: 'Yoga', costo: 1800, turno: 'Noche' },
 ];
 
-const categoriasMock: InfoCategoriaSocio[] = [
-    { id: 'infantil', nombre: 'Infantil (hasta 12 años)', cuota: 1000 },
-    { id: 'cadete', nombre: 'Cadete (13 a 17 años)', cuota: 1500 },
-    { id: 'adulto', nombre: 'Adulto (18 a 64 años)', cuota: 2500 },
-    { id: 'adulto_mayor', nombre: 'Adulto Mayor (65+ años)', cuota: 1200 },
+const mockCategorias: Categoria[] = [
+    // FIX: field `fee` renamed to `monto` and `id` is now a number
+    { id: 1, nombre: 'Infantil (hasta 12 años)', monto: 1000 },
+    { id: 2, nombre: 'Cadete (13 a 17 años)', monto: 1500 },
+    { id: 3, nombre: 'Adulto (18 a 64 años)', monto: 2500 },
+    { id: 4, nombre: 'Adulto Mayor (65+ años)', monto: 1200 },
 ];
 
-const cobradoresMock: Cobrador[] = [
-    { id: 1, nombre: 'Roberto Carlos', zona: ZonaCobranza.NORTE },
-    { id: 2, nombre: 'Juana de Arco', zona: ZonaCobranza.SUR },
-    { id: 3, nombre: 'Pedro Picapiedra', zona: ZonaCobranza.CENTRO },
+const mockCobradores: Cobrador[] = [
+    // FIX: field `zone` renamed to `zonas_id`
+    { id: 1, nombre: 'Roberto Carlos', zonas_id: 2 }, // Norte
+    { id: 2, nombre: 'Juana de Arco', zonas_id: 3 },   // Sur
+    { id: 3, nombre: 'Pedro Picapiedra', zonas_id: 1 },// Centro
 ];
 
-let pagosMock: Pago[] = [];
+let mockCasilleros: Casillero[] = [
+    { id: 101, nro_casillero: 101, estado: 'Ocupado', monto_mensual: 500 },
+    { id: 102, nro_casillero: 102, estado: 'Ocupado', monto_mensual: 500 },
+    { id: 103, nro_casillero: 103, estado: 'Libre', monto_mensual: 500 },
+];
+
+let mockSocios: Socio[] = [
+  // FIX: Updated `mockMembers` to `mockSocios` with the correct `Socio` type structure
+  { id: 1, nombre: 'Juan', apellido: 'Perez', status: EstadoSocio.PAGO, fecha_alta: '2022-01-15', fecha_nacimiento: '1990-05-20', categorias_id: 3, actividades: [mockActividades[0], mockActividades[2]], casilleros_id: 101, zonas_id: 1, dni: '11111111', direccion: 'Calle Falsa 123', telefono: '123456789', email: 'juan@perez.com' },
+  { id: 2, nombre: 'Maria', apellido: 'Gomez', status: EstadoSocio.PAGO, fecha_alta: '2021-11-20', fecha_nacimiento: '1985-08-10', categorias_id: 4, actividades: [mockActividades[1]], casilleros_id: undefined, zonas_id: 2, dni: '22222222', direccion: 'Avenida Siempreviva 742', telefono: '987654321', email: 'maria@gomez.com' },
+  { id: 3, nombre: 'Carlos', apellido: 'Lopez', status: EstadoSocio.DEBE, fecha_alta: '2023-02-10', fecha_nacimiento: '2005-03-30', categorias_id: 2, actividades: [mockActividades[0], mockActividades[3]], casilleros_id: 102, zonas_id: 3, dni: '33333333', direccion: 'Boulevard de los Sueños Rotos', telefono: '112233445', email: 'carlos@lopez.com' },
+  { id: 4, nombre: 'Ana', apellido: 'Martinez', status: EstadoSocio.PAGO, fecha_alta: '2023-05-01', fecha_nacimiento: '1995-12-01', categorias_id: 3, actividades: [mockActividades[1], mockActividades[2]], casilleros_id: undefined, zonas_id: 2, dni: '44444444', direccion: 'Plaza de la Constitución', telefono: '556677889', email: 'ana@martinez.com' },
+  { id: 5, nombre: 'Luis', apellido: 'Rodriguez', status: EstadoSocio.DEBE, fecha_alta: '2020-07-18', fecha_nacimiento: '1978-02-25', categorias_id: 3, actividades: [], casilleros_id: undefined, zonas_id: 1, dni: '55555555', direccion: 'Ruta 66', telefono: '101010101', email: 'luis@rodriguez.com' },
+];
+
+let mockCobranzas: Cobranza[] = [];
+
+// FIX: Added mock users for login functionality
+const mockUsuarios: (Usuario & {contrasena: string})[] = [
+    {id: 1, usuario: 'admin', contrasena: 'admin', rol: 'admin'},
+    {id: 2, usuario: 'socio1', contrasena: 'socio1', rol: 'socio', socioId: 1},
+    {id: 3, usuario: 'cobrador1', contrasena: 'cobrador1', rol: 'cobrador', cobradorId: 1, zonaId: 2}, // Roberto Carlos, Zona Norte
+];
+
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
+// FIX: Renamed methods to align with services/api.ts and updated logic to use correct types
 export const mockApi = {
+  // Auth
+  login: async (usuario: string, contrasena: string): Promise<Usuario> => {
+    await delay(500);
+    const user = mockUsuarios.find(u => u.usuario === usuario && u.contrasena === contrasena);
+    if (user) {
+        const { contrasena, ...userData } = user;
+        return userData;
+    }
+    throw new Error('Credenciales inválidas');
+  },
+
+  // Socios
   getSocios: async (): Promise<Socio[]> => {
     await delay(500);
-    return [...sociosMock];
+    return [...mockSocios];
   },
   getSocio: async (id: number): Promise<Socio | undefined> => {
     await delay(300);
-    return sociosMock.find(m => m.id === id);
+    const socio = mockSocios.find(m => m.id === id);
+    if (socio) {
+        // Return a copy to prevent direct mutation of the mock data
+        return { ...socio };
+    }
+    return undefined;
   },
   addSocio: async (socio: Omit<Socio, 'id'>): Promise<Socio> => {
     await delay(500);
-    const nuevoSocio = { ...socio, id: siguienteSocioId++ };
-    sociosMock.push(nuevoSocio);
-    return nuevoSocio;
+    const newSocio = { ...socio, id: nextSocioId++ };
+    mockSocios.push(newSocio);
+    return newSocio;
   },
-  updateSocio: async (socio: Socio): Promise<Socio> => {
+  updateSocio: async (id: number, socioData: Partial<Socio>): Promise<Socio> => {
     await delay(500);
-    sociosMock = sociosMock.map(m => m.id === socio.id ? socio : m);
-    return socio;
+    let updatedSocio: Socio | undefined;
+    mockSocios = mockSocios.map(s => {
+      if (s.id === id) {
+        updatedSocio = { ...s, ...socioData };
+        return updatedSocio;
+      }
+      return s;
+    });
+    if (!updatedSocio) throw new Error("Socio not found");
+    return updatedSocio;
   },
   deleteSocio: async (id: number): Promise<void> => {
     await delay(500);
-    sociosMock = sociosMock.filter(m => m.id !== id);
+    mockSocios = mockSocios.filter(m => m.id !== id);
   },
+
+  // Actividades
   getActividades: async (): Promise<Actividad[]> => {
     await delay(400);
-    return [...actividadesMock];
+    return [...mockActividades];
   },
-  addActividad: async (actividad: Omit<Actividad, 'id'>): Promise<Actividad> => {
+  addActividad: async (activity: Omit<Actividad, 'id'>): Promise<Actividad> => {
     await delay(500);
-    const nuevaActividad = { ...actividad, id: siguienteActividadId++ };
-    actividadesMock.push(nuevaActividad);
-    return nuevaActividad;
+    const newActivity = { ...activity, id: nextActivityId++ };
+    mockActividades.push(newActivity);
+    return newActivity;
   },
-  updateActividad: async (actividad: Actividad): Promise<Actividad> => {
+  updateActividad: async (id: number, activityData: Partial<Actividad>): Promise<Actividad> => {
     await delay(500);
-    actividadesMock = actividadesMock.map(a => a.id === actividad.id ? actividad : a);
-    return actividad;
+    let updatedActividad: Actividad | undefined;
+    mockActividades = mockActividades.map(a => {
+      if (a.id === id) {
+        updatedActividad = { ...a, ...activityData };
+        return updatedActividad;
+      }
+      return a;
+    });
+    if (!updatedActividad) throw new Error("Actividad not found");
+    return updatedActividad;
   },
   deleteActividad: async (id: number): Promise<void> => {
     await delay(500);
-    actividadesMock = actividadesMock.filter(a => a.id !== id);
+    mockActividades = mockActividades.filter(a => a.id !== id);
   },
-  getCategoriasSocios: async (): Promise<InfoCategoriaSocio[]> => {
+  inscribirSocioActividad: async (socioId: number, actividadId: number): Promise<void> => {
+    await delay(300);
+    const socio = mockSocios.find(s => s.id === socioId);
+    const actividad = mockActividades.find(a => a.id === actividadId);
+    if (socio && actividad) {
+        if (!socio.actividades) socio.actividades = [];
+        if (!socio.actividades.some(a => a.id === actividadId)) {
+            socio.actividades.push(actividad);
+        }
+    } else {
+        throw new Error("Socio o actividad no encontrados");
+    }
+  },
+  desinscribirSocioActividad: async (socioId: number, actividadId: number): Promise<void> => {
+    await delay(300);
+    const socio = mockSocios.find(s => s.id === socioId);
+    if (socio && socio.actividades) {
+        socio.actividades = socio.actividades.filter(a => a.id !== actividadId);
+    } else {
+        throw new Error("Socio o actividad no encontrados");
+    }
+  },
+
+  // Categorias
+  getCategorias: async (): Promise<Categoria[]> => {
     await delay(200);
-    return [...categoriasMock];
+    return [...mockCategorias];
   },
+
+  // Zonas
+  getZonas: async (): Promise<Zona[]> => {
+    await delay(100);
+    return [...mockZonas];
+  },
+
+  // Cobradores
   getCobradores: async (): Promise<Cobrador[]> => {
       await delay(200);
-      return [...cobradoresMock];
+      return [...mockCobradores];
   },
-  getCobradorPorNombre: async (nombre: string): Promise<Cobrador | undefined> => {
-    await delay(100);
-    return cobradoresMock.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-  },
+
+  // Cobranzas
   getReporteCobranza: async (cobradorId: number): Promise<ReporteCobranza> => {
       await delay(1000);
-      const cobrador = cobradoresMock.find(c => c.id === cobradorId);
-      if (!cobrador) throw new Error("Cobrador no encontrado");
+      const cobrador = mockCobradores.find(c => c.id === cobradorId);
+      if (!cobrador) throw new Error("Collector not found");
 
-      const sociosAsignados = sociosMock.filter(m => m.zona === cobrador.zona);
+      const sociosAsignados = mockSocios.filter(m => m.zonas_id === cobrador.zonas_id);
 
-      const monto = sociosAsignados
-        .filter(m => m.estado === EstadoSocio.MOROSO)
+      const montoACobrar = sociosAsignados
+        .filter(m => m.status === EstadoSocio.DEBE)
         .reduce((sum, socio) => {
-            const categoria = categoriasMock.find(c => c.id === socio.categoriaId);
-            return sum + (categoria?.cuota || 0);
+            const categoria = mockCategorias.find(c => c.id === socio.categorias_id);
+            return sum + (categoria?.monto || 0);
         }, 0);
         
-      const comision = monto * 0.10;
-      const neto = monto - comision;
+      const comision = montoACobrar * 0.10;
+      const netoARendir = montoACobrar - comision;
       
-      return { cobradorId, monto, comision, neto };
+      return { cobradorId, montoACobrar, comision, netoARendir };
   },
-  getPagos: async (): Promise<Pago[]> => {
+  getCobranzas: async (): Promise<Cobranza[]> => {
       await delay(300);
-      return [...pagosMock];
+      return [...mockCobranzas];
   },
-  registrarPago: async (datosPago: Omit<Pago, 'id'>): Promise<Pago> => {
+  addCobranza: async (cobranzaData: Omit<Cobranza, 'id'>): Promise<Cobranza> => {
       await delay(600);
-      const nuevoPago = { ...datosPago, id: siguientePagoId++ };
-      pagosMock.push(nuevoPago);
+      const newCobranza = { ...cobranzaData, id: nextCobranzaId++ };
+      mockCobranzas.push(newCobranza);
 
-      const indiceSocio = sociosMock.findIndex(m => m.id === datosPago.socioId);
-      if (indiceSocio !== -1) {
-          sociosMock[indiceSocio].estado = EstadoSocio.ACTIVO;
+      const socioIndex = mockSocios.findIndex(m => m.id === cobranzaData.socios_id);
+      if (socioIndex !== -1) {
+          mockSocios[socioIndex].status = EstadoSocio.PAGO;
       }
-      return nuevoPago;
-  }
+      return newCobranza;
+  },
+
+  // Casilleros
+  getCasilleros: async (): Promise<Casillero[]> => {
+    await delay(200);
+    return [...mockCasilleros];
+  },
+  updateCasillero: async (id: number, casilleroData: Partial<Casillero>): Promise<Casillero> => {
+    await delay(300);
+    let updatedCasillero: Casillero | undefined;
+    mockCasilleros = mockCasilleros.map(c => {
+        if (c.id === id) {
+            updatedCasillero = { ...c, ...casilleroData };
+            return updatedCasillero;
+        }
+        return c;
+    });
+    if (!updatedCasillero) throw new Error("Casillero no encontrado");
+    return updatedCasillero;
+  },
 };

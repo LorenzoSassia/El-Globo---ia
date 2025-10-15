@@ -1,11 +1,10 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { Usuario, RolUsuario } from '../types';
-import { mockApi } from '../services/mockApi';
+import { Usuario } from '../types';
+import { api } from '../services/api';
 
 interface AuthContextType {
   usuario: Usuario | null;
-  iniciarSesion: (nombreUsuario: string, contrasena?: string) => Promise<void>;
+  iniciarSesion: (nombreUsuario: string, contrasena: string) => Promise<void>;
   cerrarSesion: () => void;
 }
 
@@ -14,49 +13,34 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
-  const iniciarSesion = async (nombreUsuario: string, contrasena?: string) => {
-    // Lógica de inicio de sesión simulada
-    let usuarioMock: Usuario | null = null;
-
-    // 1. Comprobar si es Admin
-    if (nombreUsuario.toLowerCase() === 'admin') {
-      usuarioMock = { nombreUsuario, rol: RolUsuario.ADMIN };
-    }
-
-    // 2. Comprobar si es Cobrador
-    if (!usuarioMock) {
-      const cobrador = await mockApi.getCobradorPorNombre(nombreUsuario);
-      if (cobrador) {
-        usuarioMock = {
-          nombreUsuario: cobrador.nombre,
-          rol: RolUsuario.COBRADOR,
-          cobradorId: cobrador.id,
-          zona: cobrador.zona,
-        };
+  const iniciarSesion = async (nombreUsuario: string, contrasena: string) => {
+    try {
+      const datosUsuario: any = await api.login(nombreUsuario, contrasena);
+      if (datosUsuario && datosUsuario.id) {
+        // En un caso real, el token JWT se guardaría aquí.
+        // Por ahora, guardamos los datos del usuario en el estado.
+        setUsuario({
+          id: datosUsuario.id,
+          usuario: datosUsuario.usuario,
+          rol: datosUsuario.rol,
+          socioId: datosUsuario.socioId,
+          cobradorId: datosUsuario.cobradorId,
+          zonaId: datosUsuario.zonaId,
+        });
+      } else {
+        // La API debería devolver un error 401 que sería capturado por el catch.
+        // Este es un fallback.
+        throw new Error('Credenciales inválidas');
       }
-    }
-
-    // 3. Comprobar si es Socio (por nombre para la simulación)
-    if (!usuarioMock) {
-      const socios = await mockApi.getSocios();
-      const socio = socios.find(m => m.nombre.toLowerCase() === nombreUsuario.toLowerCase());
-      if (socio) {
-        usuarioMock = {
-          nombreUsuario: `${socio.nombre} ${socio.apellido}`,
-          rol: RolUsuario.SOCIO,
-          socioId: socio.id,
-        };
-      }
-    }
-
-    if (usuarioMock) {
-      setUsuario(usuarioMock);
-    } else {
-      alert('Usuario o contraseña incorrectos.');
+    } catch (error) {
+      console.error('Falló el inicio de sesión:', error);
+      // Relanzamos el error para que el componente de Login pueda manejarlo
+      throw error;
     }
   };
 
   const cerrarSesion = () => {
+    // En un caso real, se limpiaría el token JWT.
     setUsuario(null);
   };
 

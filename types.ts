@@ -1,76 +1,94 @@
+// types.ts
 
-export enum RolUsuario {
-  ADMIN = 'admin',
-  COBRADOR = 'cobrador',
-  SOCIO = 'socio',
-}
-
+// Basado en la tabla 'usuarios'
 export interface Usuario {
-  nombreUsuario: string;
-  rol: RolUsuario;
+  id: number;
+  usuario: string;
+  rol: 'admin' | 'socio' | 'cobrador';
   socioId?: number;
   cobradorId?: number;
-  zona?: ZonaCobranza;
+  zonaId?: number;
 }
 
+// Basado en la tabla 'socios'
 export enum EstadoSocio {
-  ACTIVO = 'activo',
-  MOROSO = 'moroso',
-  INACTIVO = 'inactivo',
+  PAGO = 'Pago',
+  DEBE = 'Debe',
+  INACTIVO = 'Inactivo',
 }
 
 export interface Socio {
   id: number;
   nombre: string;
   apellido: string;
-  estado: EstadoSocio;
-  fechaIngreso: string; // "YYYY-MM-DD"
-  fechaNacimiento: string; // "YYYY-MM-DD"
-  categoriaId: string;
-  actividades: number[];
-  tieneCasillero: boolean;
-  numeroCasillero?: number;
-  zona: ZonaCobranza;
+  dni: string;
+  fecha_nacimiento: string; // "YYYY-MM-DD"
+  direccion: string;
+  telefono: string;
+  email: string;
+  fecha_alta: string; // "YYYY-MM-DD"
+  status: EstadoSocio;
+  casilleros_id?: number;
+  categorias_id: number;
+  zonas_id: number;
+  actividades?: Actividad[]; // Se poblará por separado
 }
 
+// Basado en la tabla 'actividades'
 export interface Actividad {
   id: number;
   nombre: string;
   costo: number;
-  horario: 'matutino' | 'vespertino' | 'nocturno';
+  turno: string; // "Mañana", "Tarde", "Noche", "Mañana - Tarde"
 }
 
-export interface InfoCategoriaSocio {
-  id: string;
+// Basado en la tabla 'categorias'
+export interface Categoria {
+  id: number;
   nombre: string;
-  cuota: number;
+  monto: number;
 }
 
-export enum ZonaCobranza {
-  NORTE,
-  SUR,
-  ESTE,
-  OESTE,
-  CENTRO,
+// Basado en la tabla 'zonas'
+export interface Zona {
+    id: number;
+    zona: string;
 }
 
+// Basado en la tabla 'cobradores'
 export interface Cobrador {
     id: number;
     nombre: string;
-    zona: ZonaCobranza;
+    zonas_id: number;
 }
 
+// Basado en la tabla 'cobranzas'
+export interface Cobranza {
+    id: number;
+    fecha_emision: string; // "YYYY-MM-DD"
+    mes: string;
+    monto: number;
+    estado: string;
+    recargo: number;
+    descuento: number;
+    socios_id: number;
+    cobradores_id: number;
+}
+
+// Basado en la tabla 'casilleros'
+export interface Casillero {
+    id: number;
+    nro_casillero: number;
+    estado: 'Ocupado' | 'Libre';
+    monto_mensual: number;
+    socio?: Socio; // Para mostrar quién lo ocupa
+}
+
+
+// Tipos para la UI que no son directamente de la DB
 export interface ReporteCobranza {
     cobradorId: number;
-    monto: number;
+    montoACobrar: number;
     comision: number;
-    neto: number;
-}
-
-export interface Pago {
-    id: number;
-    socioId: number;
-    cobradorId: number;
-    monto: number;
-    fecha: string; // "YYYY-MM-DD"
+    netoARendir: number;
 }

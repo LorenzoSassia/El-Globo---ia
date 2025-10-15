@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 
 interface LandingPageProps {
   onIngresarClick: () => void;
 }
 
-const imagenesCarrusel = [
+const carouselImages = [
   {
     src: 'https://placehold.co/1200x500/0284c7/FFFFFF/png?text=Natación',
     alt: 'Clases de natación',
@@ -33,17 +32,17 @@ const imagenesCarrusel = [
 ];
 
 const LandingPage: React.FC<LandingPageProps> = ({ onIngresarClick }) => {
-    const [indiceActual, setIndiceActual] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setIndiceActual((prevIndex) => (prevIndex + 1) % imagenesCarrusel.length);
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
         }, 5000);
         return () => clearTimeout(timer);
-    }, [indiceActual]);
+    }, [currentIndex]);
 
-    const irAImagen = (indice: number) => {
-        setIndiceActual(indice);
+    const goToSlide = (index: number) => {
+        setCurrentIndex(index);
     };
 
   return (
@@ -64,8 +63,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onIngresarClick }) => {
       <main>
         {/* Hero Carousel */}
         <section className="relative w-full h-[500px] overflow-hidden">
-            <div className="w-full h-full transition-transform duration-1000 ease-in-out" style={{ transform: `translateX(-${indiceActual * 100}%)` }}>
-                {imagenesCarrusel.map((img, index) => (
+            <div className="w-full h-full transition-transform duration-1000 ease-in-out" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+                {carouselImages.map((img, index) => (
                      <div key={index} className="absolute top-0 left-0 w-full h-full">
                          <img src={img.src.replace(`${index * 100}%`, `${index * 100}%`)} alt={img.alt} className="object-cover w-full h-full" />
                          <div className="absolute inset-0 bg-black opacity-60"></div>
@@ -77,8 +76,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onIngresarClick }) => {
                 ))}
             </div>
             <div className="absolute z-10 flex space-x-3 bottom-5 left-1/2 -translate-x-1/2">
-                {imagenesCarrusel.map((_, index) => (
-                    <button key={index} onClick={() => irAImagen(index)} className={`w-3 h-3 rounded-full ${indiceActual === index ? 'bg-white' : 'bg-gray-500'}`}></button>
+                {carouselImages.map((_, index) => (
+                    <button key={index} onClick={() => goToSlide(index)} className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-white' : 'bg-gray-500'}`}></button>
                 ))}
             </div>
         </section>

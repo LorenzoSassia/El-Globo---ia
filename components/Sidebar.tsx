@@ -2,7 +2,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Vista } from '../App';
-import { RolUsuario } from '../types';
 import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon, ArchiveIcon } from './icons';
 
 interface SidebarProps {
@@ -11,13 +10,13 @@ interface SidebarProps {
   onCerrarSesion: () => void;
 }
 
-const ElementoNavegacion: React.FC<{
+const NavItem: React.FC<{
   vista: Vista;
-  etiqueta: string;
-  icono: React.ReactNode;
+  label: string;
+  icon: React.ReactNode;
   vistaActiva: Vista;
   onClick: (vista: Vista) => void;
-}> = ({ vista, etiqueta, icono, vistaActiva, onClick }) => (
+}> = ({ vista, label, icon, vistaActiva, onClick }) => (
   <li>
     <a
       href="#"
@@ -29,8 +28,8 @@ const ElementoNavegacion: React.FC<{
         vistaActiva === vista ? 'bg-gray-700 text-white' : 'text-gray-400'
       }`}
     >
-      {icono}
-      <span className="ml-3">{etiqueta}</span>
+      {icon}
+      <span className="ml-3">{label}</span>
     </a>
   </li>
 );
@@ -38,27 +37,27 @@ const ElementoNavegacion: React.FC<{
 const Sidebar: React.FC<SidebarProps> = ({ vistaActiva, setVistaActiva, onCerrarSesion }) => {
   const { usuario } = useAuth();
 
-  const enlacesAdmin: Vista[] = ['panel', 'socios', 'cobranzas', 'actividades', 'casilleros'];
-  const enlacesCobrador: Vista[] = ['panel', 'cobranzas', 'reportes'];
-  const enlacesSocio: Vista[] = ['perfil', 'actividades'];
+  const adminLinks: Vista[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'casilleros'];
+  const cobradorLinks: Vista[] = ['dashboard', 'cobranzas', 'reportes'];
+  const socioLinks: Vista[] = ['perfil', 'actividades'];
 
-  let enlacesDisponibles: Vista[] = [];
-  if (usuario?.rol === RolUsuario.ADMIN) {
-    enlacesDisponibles = enlacesAdmin;
-  } else if (usuario?.rol === RolUsuario.COBRADOR) {
-    enlacesDisponibles = enlacesCobrador;
-  } else if (usuario?.rol === RolUsuario.SOCIO) {
-    enlacesDisponibles = enlacesSocio;
+  let availableLinks: Vista[] = [];
+  if (usuario?.rol === 'admin') {
+    availableLinks = adminLinks;
+  } else if (usuario?.rol === 'cobrador') {
+    availableLinks = cobradorLinks;
+  } else if (usuario?.rol === 'socio') {
+    availableLinks = socioLinks;
   }
   
-  const todosLosEnlaces: { vista: Vista; etiqueta: string; icono: React.ReactNode }[] = [
-      { vista: 'panel', etiqueta: 'Dashboard', icono: <HomeIcon /> },
-      { vista: 'socios', etiqueta: 'Socios', icono: <UsersIcon /> },
-      { vista: 'cobranzas', etiqueta: 'Cobranzas', icono: <CurrencyDollarIcon /> },
-      { vista: 'actividades', etiqueta: 'Actividades', icono: <SparklesIcon /> },
-      { vista: 'casilleros', etiqueta: 'Casilleros', icono: <ArchiveIcon /> },
-      { vista: 'reportes', etiqueta: 'Reportes', icono: <ChartBarIcon /> },
-      { vista: 'perfil', etiqueta: 'Mi Perfil', icono: <UserCircleIcon /> },
+  const allLinks: { vista: Vista; label: string; icon: React.ReactNode }[] = [
+      { vista: 'dashboard', label: 'Dashboard', icon: <HomeIcon /> },
+      { vista: 'socios', label: 'Socios', icon: <UsersIcon /> },
+      { vista: 'cobranzas', label: 'Cobranzas', icon: <CurrencyDollarIcon /> },
+      { vista: 'actividades', label: 'Actividades', icon: <SparklesIcon /> },
+      { vista: 'casilleros', label: 'Casilleros', icon: <ArchiveIcon /> },
+      { vista: 'reportes', label: 'Reportes', icon: <ChartBarIcon /> },
+      { vista: 'perfil', label: 'Mi Perfil', icon: <UserCircleIcon /> },
   ];
 
   return (
@@ -68,14 +67,14 @@ const Sidebar: React.FC<SidebarProps> = ({ vistaActiva, setVistaActiva, onCerrar
           Club Manager
         </div>
         <ul className="space-y-2">
-          {todosLosEnlaces
-            .filter(enlace => enlacesDisponibles.includes(enlace.vista))
-            .map(enlace => (
-              <ElementoNavegacion
-                key={enlace.vista}
-                vista={enlace.vista}
-                etiqueta={enlace.etiqueta}
-                icono={enlace.icono}
+          {allLinks
+            .filter(link => availableLinks.includes(link.vista))
+            .map(link => (
+              <NavItem
+                key={link.vista}
+                vista={link.vista}
+                label={link.label}
+                icon={link.icon}
                 vistaActiva={vistaActiva}
                 onClick={setVistaActiva}
               />

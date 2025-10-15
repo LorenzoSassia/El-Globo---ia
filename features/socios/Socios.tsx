@@ -1,7 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { mockApi } from '../../services/mockApi';
-import { Socio, Actividad, InfoCategoriaSocio } from '../../types';
+import { api } from '../../services/api';
+import { Socio, Actividad, Categoria } from '../../types';
 import SocioModal from './SocioModal';
 import SocioInfoModal from './SocioInfoModal';
 import { PlusIcon, EyeIcon, PencilIcon, TrashIcon } from '../../components/icons';
@@ -9,9 +10,9 @@ import { PlusIcon, EyeIcon, PencilIcon, TrashIcon } from '../../components/icons
 const Socios: React.FC = () => {
     const [socios, setSocios] = useState<Socio[]>([]);
     const [actividades, setActividades] = useState<Actividad[]>([]);
-    const [categorias, setCategorias] = useState<InfoCategoriaSocio[]>([]);
-    const [estaModalEdicionAbierto, setEstaModalEdicionAbierto] = useState(false);
-    const [estaModalInfoAbierto, setEstaModalInfoAbierto] = useState(false);
+    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [socioSeleccionado, setSocioSeleccionado] = useState<Socio | null>(null);
 
     useEffect(() => {
@@ -19,56 +20,71 @@ const Socios: React.FC = () => {
     }, []);
 
     const cargarDatos = async () => {
-        const [datosSocios, datosActividades, datosCategorias] = await Promise.all([
-            mockApi.getSocios(),
-            mockApi.getActividades(),
-            mockApi.getCategoriasSocios()
-        ]);
-        setSocios(datosSocios);
-        setActividades(datosActividades);
-        setCategorias(datosCategorias);
+        try {
+            const [sociosData, actividadesData, categoriasData] = await Promise.all([
+                api.getSocios(),
+                api.getActividades(),
+                api.getCategorias()
+            ]);
+            setSocios(sociosData as Socio[]);
+            setActividades(actividadesData as Actividad[]);
+            setCategorias(categoriasData as Categoria[]);
+        } catch (error) {
+            console.error("Error al cargar datos de socios:", error);
+            alert("No se pudieron cargar los datos. Verifique la conexión con la API.");
+        }
     };
 
-    const abrirModalEdicion = (socio: Socio | null = null) => {
+    const handleAbrirModalEditar = (socio: Socio | null = null) => {
         setSocioSeleccionado(socio);
-        setEstaModalEdicionAbierto(true);
+        setIsEditModalOpen(true);
     };
 
-    const abrirModalInfo = (socio: Socio) => {
+    const handleAbrirModalInfo = (socio: Socio) => {
         setSocioSeleccionado(socio);
-        setEstaModalInfoAbierto(true);
+        setIsInfoModalOpen(true);
     };
     
-    const cerrarModales = () => {
-        setEstaModalEdicionAbierto(false);
-        setEstaModalInfoAbierto(false);
+    const handleCerrarModales = () => {
+        setIsEditModalOpen(false);
+        setIsInfoModalOpen(false);
         setSocioSeleccionado(null);
     };
 
-    const guardarSocio = async (socio: Socio | Omit<Socio, 'id'>) => {
-        if ('id' in socio && socio.id) {
-            await mockApi.updateSocio(socio as Socio);
-        } else {
-            await mockApi.addSocio(socio);
+    const handleGuardarSocio = async (socioData: Omit<Socio, 'id'> | Socio) => {
+        try {
+            if ('id' in socioData && socioData.id) {
+                await api.updateSocio(socioData.id, socioData);
+            } else {
+                await api.addSocio(socioData);
+            }
+            cargarDatos();
+            handleCerrarModales();
+        } catch (error) {
+            console.error("Error al guardar socio:", error);
+            alert("Error al guardar el socio.");
         }
-        cargarDatos();
-        cerrarModales();
     };
 
-    const eliminarSocio = async (id: number) => {
+    const handleEliminarSocio = async (id: number) => {
         if (window.confirm('¿Está seguro de que desea eliminar este socio?')) {
-            await mockApi.deleteSocio(id);
-            cargarDatos();
+            try {
+                await api.deleteSocio(id);
+                cargarDatos();
+            } catch (error) {
+                console.error("Error al eliminar socio:", error);
+                alert("Error al eliminar el socio.");
+            }
         }
     };
     
-    const obtenerNombreCategoria = (id: string) => categorias.find(c => c.id === id)?.nombre || 'N/A';
+    const getNombreCategoria = (id: number) => categorias.find(c => c.id === id)?.nombre || 'N/A';
 
     return (
         <div>
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-white">Gestión de Socios</h1>
-                <button onClick={() => abrirModalEdicion()} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                <button onClick={() => handleAbrirModalEditar()} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
                     <PlusIcon />
                     <span className="ml-2">Nuevo Socio</span>
                 </button>
@@ -90,12 +106,12 @@ const Socios: React.FC = () => {
                             <tr key={socio.id} className="border-b bg-gray-800 border-gray-700 hover:bg-gray-600">
                                 <td className="px-6 py-4">{socio.id}</td>
                                 <td className="px-6 py-4 font-medium text-white">{`${socio.nombre} ${socio.apellido}`}</td>
-                                <td className="px-6 py-4">{obtenerNombreCategoria(socio.categoriaId)}</td>
-                                <td className="px-6 py-4">{socio.estado}</td>
+                                <td className="px-6 py-4">{getNombreCategoria(socio.categorias_id)}</td>
+                                <td className="px-6 py-4">{socio.status}</td>
                                 <td className="flex items-center px-6 py-4 space-x-3">
-                                    <button onClick={() => abrirModalInfo(socio)} className="text-gray-400 hover:text-white"><EyeIcon /></button>
-                                    <button onClick={() => abrirModalEdicion(socio)} className="text-blue-500 hover:text-blue-400"><PencilIcon /></button>
-                                    <button onClick={() => eliminarSocio(socio.id)} className="text-red-500 hover:text-red-400"><TrashIcon /></button>
+                                    <button onClick={() => handleAbrirModalInfo(socio)} className="text-gray-400 hover:text-white"><EyeIcon /></button>
+                                    <button onClick={() => handleAbrirModalEditar(socio)} className="text-blue-500 hover:text-blue-400"><PencilIcon /></button>
+                                    <button onClick={() => handleEliminarSocio(socio.id)} className="text-red-500 hover:text-red-400"><TrashIcon /></button>
                                 </td>
                             </tr>
                         ))}
@@ -104,15 +120,15 @@ const Socios: React.FC = () => {
             </div>
 
             <SocioModal
-                estaAbierto={estaModalEdicionAbierto}
-                alCerrar={cerrarModales}
-                alGuardar={guardarSocio}
+                isOpen={isEditModalOpen}
+                onClose={handleCerrarModales}
+                onSave={handleGuardarSocio}
                 socio={socioSeleccionado}
             />
             
             <SocioInfoModal
-                estaAbierto={estaModalInfoAbierto}
-                alCerrar={cerrarModales}
+                isOpen={isInfoModalOpen}
+                onClose={handleCerrarModales}
                 socio={socioSeleccionado}
                 actividades={actividades}
                 categorias={categorias}
