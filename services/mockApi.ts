@@ -1,137 +1,138 @@
+
 import {
-  Member,
-  Activity,
-  MemberCategoryInfo,
-  Collector,
-  CollectionReport,
-  CollectionZone,
-  MemberStatus,
-  Payment,
+  Socio,
+  Actividad,
+  InfoCategoriaSocio,
+  Cobrador,
+  ReporteCobranza,
+  ZonaCobranza,
+  EstadoSocio,
+  Pago,
 } from '../types';
 
-let nextMemberId = 6;
-let nextActivityId = 5;
-let nextPaymentId = 1;
+let siguienteSocioId = 6;
+let siguienteActividadId = 5;
+let siguientePagoId = 1;
 
-let mockMembers: Member[] = [
-  { id: 1, firstName: 'Juan', lastName: 'Perez', status: MemberStatus.ACTIVE, joinDate: '2022-01-15', birthDate: '1990-05-20', categoryId: 'adulto', activities: [1, 3], hasLocker: true, lockerNumber: 101, zone: CollectionZone.CENTRO },
-  { id: 2, firstName: 'Maria', lastName: 'Gomez', status: MemberStatus.ACTIVE, joinDate: '2021-11-20', birthDate: '1985-08-10', categoryId: 'adulto_mayor', activities: [2], hasLocker: false, zone: CollectionZone.NORTE },
-  { id: 3, firstName: 'Carlos', lastName: 'Lopez', status: MemberStatus.DELINQUENT, joinDate: '2023-02-10', birthDate: '2005-03-30', categoryId: 'cadete', activities: [1, 4], hasLocker: true, lockerNumber: 102, zone: CollectionZone.SUR },
-  { id: 4, firstName: 'Ana', lastName: 'Martinez', status: MemberStatus.ACTIVE, joinDate: '2023-05-01', birthDate: '1995-12-01', categoryId: 'adulto', activities: [2, 3], hasLocker: false, zone: CollectionZone.NORTE },
-  { id: 5, firstName: 'Luis', lastName: 'Rodriguez', status: MemberStatus.DELINQUENT, joinDate: '2020-07-18', birthDate: '1978-02-25', categoryId: 'adulto', activities: [], hasLocker: false, zone: CollectionZone.CENTRO },
+let sociosMock: Socio[] = [
+  { id: 1, nombre: 'Juan', apellido: 'Perez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2022-01-15', fechaNacimiento: '1990-05-20', categoriaId: 'adulto', actividades: [1, 3], tieneCasillero: true, numeroCasillero: 101, zona: ZonaCobranza.CENTRO },
+  { id: 2, nombre: 'Maria', apellido: 'Gomez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2021-11-20', fechaNacimiento: '1985-08-10', categoriaId: 'adulto_mayor', actividades: [2], tieneCasillero: false, zona: ZonaCobranza.NORTE },
+  { id: 3, nombre: 'Carlos', apellido: 'Lopez', estado: EstadoSocio.MOROSO, fechaIngreso: '2023-02-10', fechaNacimiento: '2005-03-30', categoriaId: 'cadete', actividades: [1, 4], tieneCasillero: true, numeroCasillero: 102, zona: ZonaCobranza.SUR },
+  { id: 4, nombre: 'Ana', apellido: 'Martinez', estado: EstadoSocio.ACTIVO, fechaIngreso: '2023-05-01', fechaNacimiento: '1995-12-01', categoriaId: 'adulto', actividades: [2, 3], tieneCasillero: false, zona: ZonaCobranza.NORTE },
+  { id: 5, nombre: 'Luis', apellido: 'Rodriguez', estado: EstadoSocio.MOROSO, fechaIngreso: '2020-07-18', fechaNacimiento: '1978-02-25', categoriaId: 'adulto', actividades: [], tieneCasillero: false, zona: ZonaCobranza.CENTRO },
 ];
 
-let mockActivities: Activity[] = [
-  { id: 1, name: 'Natación', cost: 1500, schedule: 'matutino' },
-  { id: 2, name: 'Gimnasio', cost: 2000, schedule: 'vespertino' },
-  { id: 3, name: 'Tenis', cost: 2500, schedule: 'matutino' },
-  { id: 4, name: 'Yoga', cost: 1800, schedule: 'nocturno' },
+let actividadesMock: Actividad[] = [
+  { id: 1, nombre: 'Natación', costo: 1500, horario: 'matutino' },
+  { id: 2, nombre: 'Gimnasio', costo: 2000, horario: 'vespertino' },
+  { id: 3, nombre: 'Tenis', costo: 2500, horario: 'matutino' },
+  { id: 4, nombre: 'Yoga', costo: 1800, horario: 'nocturno' },
 ];
 
-const mockCategories: MemberCategoryInfo[] = [
-    { id: 'infantil', name: 'Infantil (hasta 12 años)', fee: 1000 },
-    { id: 'cadete', name: 'Cadete (13 a 17 años)', fee: 1500 },
-    { id: 'adulto', name: 'Adulto (18 a 64 años)', fee: 2500 },
-    { id: 'adulto_mayor', name: 'Adulto Mayor (65+ años)', fee: 1200 },
+const categoriasMock: InfoCategoriaSocio[] = [
+    { id: 'infantil', nombre: 'Infantil (hasta 12 años)', cuota: 1000 },
+    { id: 'cadete', nombre: 'Cadete (13 a 17 años)', cuota: 1500 },
+    { id: 'adulto', nombre: 'Adulto (18 a 64 años)', cuota: 2500 },
+    { id: 'adulto_mayor', nombre: 'Adulto Mayor (65+ años)', cuota: 1200 },
 ];
 
-const mockCollectors: Collector[] = [
-    { id: 1, name: 'Roberto Carlos', zone: CollectionZone.NORTE },
-    { id: 2, name: 'Juana de Arco', zone: CollectionZone.SUR },
-    { id: 3, name: 'Pedro Picapiedra', zone: CollectionZone.CENTRO },
+const cobradoresMock: Cobrador[] = [
+    { id: 1, nombre: 'Roberto Carlos', zona: ZonaCobranza.NORTE },
+    { id: 2, nombre: 'Juana de Arco', zona: ZonaCobranza.SUR },
+    { id: 3, nombre: 'Pedro Picapiedra', zona: ZonaCobranza.CENTRO },
 ];
 
-let mockPayments: Payment[] = [];
+let pagosMock: Pago[] = [];
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export const mockApi = {
-  getMembers: async (): Promise<Member[]> => {
+  getSocios: async (): Promise<Socio[]> => {
     await delay(500);
-    return [...mockMembers];
+    return [...sociosMock];
   },
-  getMember: async (id: number): Promise<Member | undefined> => {
+  getSocio: async (id: number): Promise<Socio | undefined> => {
     await delay(300);
-    return mockMembers.find(m => m.id === id);
+    return sociosMock.find(m => m.id === id);
   },
-  addMember: async (member: Omit<Member, 'id'>): Promise<Member> => {
+  addSocio: async (socio: Omit<Socio, 'id'>): Promise<Socio> => {
     await delay(500);
-    const newMember = { ...member, id: nextMemberId++ };
-    mockMembers.push(newMember);
-    return newMember;
+    const nuevoSocio = { ...socio, id: siguienteSocioId++ };
+    sociosMock.push(nuevoSocio);
+    return nuevoSocio;
   },
-  updateMember: async (member: Member): Promise<Member> => {
+  updateSocio: async (socio: Socio): Promise<Socio> => {
     await delay(500);
-    mockMembers = mockMembers.map(m => m.id === member.id ? member : m);
-    return member;
+    sociosMock = sociosMock.map(m => m.id === socio.id ? socio : m);
+    return socio;
   },
-  deleteMember: async (id: number): Promise<void> => {
+  deleteSocio: async (id: number): Promise<void> => {
     await delay(500);
-    mockMembers = mockMembers.filter(m => m.id !== id);
+    sociosMock = sociosMock.filter(m => m.id !== id);
   },
-  getActivities: async (): Promise<Activity[]> => {
+  getActividades: async (): Promise<Actividad[]> => {
     await delay(400);
-    return [...mockActivities];
+    return [...actividadesMock];
   },
-  addActivity: async (activity: Omit<Activity, 'id'>): Promise<Activity> => {
+  addActividad: async (actividad: Omit<Actividad, 'id'>): Promise<Actividad> => {
     await delay(500);
-    const newActivity = { ...activity, id: nextActivityId++ };
-    mockActivities.push(newActivity);
-    return newActivity;
+    const nuevaActividad = { ...actividad, id: siguienteActividadId++ };
+    actividadesMock.push(nuevaActividad);
+    return nuevaActividad;
   },
-  updateActivity: async (activity: Activity): Promise<Activity> => {
+  updateActividad: async (actividad: Actividad): Promise<Actividad> => {
     await delay(500);
-    mockActivities = mockActivities.map(a => a.id === activity.id ? activity : a);
-    return activity;
+    actividadesMock = actividadesMock.map(a => a.id === actividad.id ? actividad : a);
+    return actividad;
   },
-  deleteActivity: async (id: number): Promise<void> => {
+  deleteActividad: async (id: number): Promise<void> => {
     await delay(500);
-    mockActivities = mockActivities.filter(a => a.id !== id);
+    actividadesMock = actividadesMock.filter(a => a.id !== id);
   },
-  getMemberCategories: async (): Promise<MemberCategoryInfo[]> => {
+  getCategoriasSocios: async (): Promise<InfoCategoriaSocio[]> => {
     await delay(200);
-    return [...mockCategories];
+    return [...categoriasMock];
   },
-  getCollectors: async (): Promise<Collector[]> => {
+  getCobradores: async (): Promise<Cobrador[]> => {
       await delay(200);
-      return [...mockCollectors];
+      return [...cobradoresMock];
   },
-  getCollectorByName: async (name: string): Promise<Collector | undefined> => {
+  getCobradorPorNombre: async (nombre: string): Promise<Cobrador | undefined> => {
     await delay(100);
-    return mockCollectors.find(c => c.name.toLowerCase() === name.toLowerCase());
+    return cobradoresMock.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
   },
-  getCollectionReport: async (collectorId: number): Promise<CollectionReport> => {
+  getReporteCobranza: async (cobradorId: number): Promise<ReporteCobranza> => {
       await delay(1000);
-      const collector = mockCollectors.find(c => c.id === collectorId);
-      if (!collector) throw new Error("Collector not found");
+      const cobrador = cobradoresMock.find(c => c.id === cobradorId);
+      if (!cobrador) throw new Error("Cobrador no encontrado");
 
-      const assignedMembers = mockMembers.filter(m => m.zone === collector.zone);
+      const sociosAsignados = sociosMock.filter(m => m.zona === cobrador.zona);
 
-      const amount = assignedMembers
-        .filter(m => m.status === MemberStatus.DELINQUENT)
-        .reduce((sum, member) => {
-            const category = mockCategories.find(c => c.id === member.categoryId);
-            return sum + (category?.fee || 0);
+      const monto = sociosAsignados
+        .filter(m => m.estado === EstadoSocio.MOROSO)
+        .reduce((sum, socio) => {
+            const categoria = categoriasMock.find(c => c.id === socio.categoriaId);
+            return sum + (categoria?.cuota || 0);
         }, 0);
         
-      const commission = amount * 0.10;
-      const net = amount - commission;
+      const comision = monto * 0.10;
+      const neto = monto - comision;
       
-      return { collectorId, amount, commission, net };
+      return { cobradorId, monto, comision, neto };
   },
-  getPayments: async (): Promise<Payment[]> => {
+  getPagos: async (): Promise<Pago[]> => {
       await delay(300);
-      return [...mockPayments];
+      return [...pagosMock];
   },
-  recordPayment: async (paymentData: Omit<Payment, 'id'>): Promise<Payment> => {
+  registrarPago: async (datosPago: Omit<Pago, 'id'>): Promise<Pago> => {
       await delay(600);
-      const newPayment = { ...paymentData, id: nextPaymentId++ };
-      mockPayments.push(newPayment);
+      const nuevoPago = { ...datosPago, id: siguientePagoId++ };
+      pagosMock.push(nuevoPago);
 
-      const memberIndex = mockMembers.findIndex(m => m.id === paymentData.memberId);
-      if (memberIndex !== -1) {
-          mockMembers[memberIndex].status = MemberStatus.ACTIVE;
+      const indiceSocio = sociosMock.findIndex(m => m.id === datosPago.socioId);
+      if (indiceSocio !== -1) {
+          sociosMock[indiceSocio].estado = EstadoSocio.ACTIVO;
       }
-      return newPayment;
+      return nuevoPago;
   }
 };

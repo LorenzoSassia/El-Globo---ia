@@ -1,85 +1,86 @@
+
 import React, { useState, useEffect } from 'react';
-import { Activity, Member } from '../../types';
+import { Actividad, Socio } from '../../types';
 import { mockApi } from '../../services/mockApi';
 import ActividadModal from './ActividadModal';
 import { PlusIcon, PencilIcon, TrashIcon } from '../../components/icons';
 import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../types';
+import { RolUsuario } from '../../types';
 
 const Actividades: React.FC = () => {
-  const { user } = useAuth();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
-  const [currentMember, setCurrentMember] = useState<Member | null>(null);
+  const { usuario } = useAuth();
+  const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [estaModalAbierto, setEstaModalAbierto] = useState(false);
+  const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null);
+  const [socioActual, setSocioActual] = useState<Socio | null>(null);
 
   useEffect(() => {
-    loadActivities();
-    loadMemberData();
-  }, [user]);
+    cargarActividades();
+    cargarDatosSocio();
+  }, [usuario]);
 
-  const loadActivities = async () => {
-    const data = await mockApi.getActivities();
-    setActivities(data);
+  const cargarActividades = async () => {
+    const data = await mockApi.getActividades();
+    setActividades(data);
   };
 
-  const loadMemberData = async () => {
-      if (user?.role === UserRole.SOCIO && user.memberId) {
-          const memberData = await mockApi.getMember(user.memberId);
-          setCurrentMember(memberData || null);
+  const cargarDatosSocio = async () => {
+      if (usuario?.rol === RolUsuario.SOCIO && usuario.socioId) {
+          const datosSocio = await mockApi.getSocio(usuario.socioId);
+          setSocioActual(datosSocio || null);
       }
   };
   
-  const handleEnrollmentToggle = async (activityId: number) => {
-      if (!currentMember) return;
+  const alternarInscripcion = async (actividadId: number) => {
+      if (!socioActual) return;
       
-      const isEnrolled = currentMember.activities.includes(activityId);
-      const updatedActivities = isEnrolled
-          ? currentMember.activities.filter(id => id !== activityId)
-          : [...currentMember.activities, activityId];
+      const estaInscrito = socioActual.actividades.includes(actividadId);
+      const actividadesActualizadas = estaInscrito
+          ? socioActual.actividades.filter(id => id !== actividadId)
+          : [...socioActual.actividades, actividadId];
           
-      const updatedMember = { ...currentMember, activities: updatedActivities };
+      const socioActualizado = { ...socioActual, actividades: actividadesActualizadas };
       
-      await mockApi.updateMember(updatedMember);
-      setCurrentMember(updatedMember);
+      await mockApi.updateSocio(socioActualizado);
+      setSocioActual(socioActualizado);
   };
 
-  const handleOpenModal = (activity: Activity | null = null) => {
-    setSelectedActivity(activity);
-    setIsModalOpen(true);
+  const abrirModal = (actividad: Actividad | null = null) => {
+    setActividadSeleccionada(actividad);
+    setEstaModalAbierto(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedActivity(null);
+  const cerrarModal = () => {
+    setEstaModalAbierto(false);
+    setActividadSeleccionada(null);
   };
 
-  const handleSaveActivity = async (activity: Activity) => {
-    if (selectedActivity) {
-      await mockApi.updateActivity({ ...activity, id: selectedActivity.id });
+  const guardarActividad = async (actividad: Actividad) => {
+    if (actividadSeleccionada) {
+      await mockApi.updateActividad({ ...actividad, id: actividadSeleccionada.id });
     } else {
-      await mockApi.addActivity(activity);
+      await mockApi.addActividad(actividad);
     }
-    loadActivities();
-    handleCloseModal();
+    cargarActividades();
+    cerrarModal();
   };
 
-  const handleDeleteActivity = async (id: number) => {
+  const eliminarActividad = async (id: number) => {
     if (window.confirm('¿Está seguro de que desea eliminar esta actividad?')) {
-      await mockApi.deleteActivity(id);
-      loadActivities();
+      await mockApi.deleteActividad(id);
+      cargarActividades();
     }
   };
 
-  const isAdmin = user?.role === UserRole.ADMIN;
-  const isSocio = user?.role === UserRole.SOCIO;
+  const esAdmin = usuario?.rol === RolUsuario.ADMIN;
+  const esSocio = usuario?.rol === RolUsuario.SOCIO;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-white">Actividades del Club</h1>
-        {isAdmin && (
-            <button onClick={() => handleOpenModal()} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+        {esAdmin && (
+            <button onClick={() => abrirModal()} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
                 <PlusIcon />
                 <span className="ml-2">Nueva Actividad</span>
             </button>
@@ -94,35 +95,35 @@ const Actividades: React.FC = () => {
               <th scope="col" className="px-6 py-3">Nombre</th>
               <th scope="col" className="px-6 py-3">Costo</th>
               <th scope="col" className="px-6 py-3">Horario</th>
-              {(isAdmin || isSocio) && <th scope="col" className="px-6 py-3">Acciones</th>}
+              {(esAdmin || esSocio) && <th scope="col" className="px-6 py-3">Acciones</th>}
             </tr>
           </thead>
           <tbody>
-            {activities.map((activity) => (
-              <tr key={activity.id} className="border-b bg-gray-800 border-gray-700 hover:bg-gray-600">
-                <td className="px-6 py-4">{activity.id}</td>
-                <td className="px-6 py-4 text-white">{activity.name}</td>
-                <td className="px-6 py-4">${activity.cost.toLocaleString()}</td>
-                <td className="px-6 py-4 capitalize">{activity.schedule}</td>
-                {(isAdmin || isSocio) && (
+            {actividades.map((actividad) => (
+              <tr key={actividad.id} className="border-b bg-gray-800 border-gray-700 hover:bg-gray-600">
+                <td className="px-6 py-4">{actividad.id}</td>
+                <td className="px-6 py-4 text-white">{actividad.nombre}</td>
+                <td className="px-6 py-4">${actividad.costo.toLocaleString()}</td>
+                <td className="px-6 py-4 capitalize">{actividad.horario}</td>
+                {(esAdmin || esSocio) && (
                     <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                            {isAdmin && (
+                            {esAdmin && (
                                 <>
-                                <button onClick={() => handleOpenModal(activity)} className="text-blue-500 hover:text-blue-400"><PencilIcon/></button>
-                                <button onClick={() => handleDeleteActivity(activity.id)} className="text-red-500 hover:text-red-400"><TrashIcon/></button>
+                                <button onClick={() => abrirModal(actividad)} className="text-blue-500 hover:text-blue-400"><PencilIcon/></button>
+                                <button onClick={() => eliminarActividad(actividad.id)} className="text-red-500 hover:text-red-400"><TrashIcon/></button>
                                 </>
                             )}
-                            {isSocio && currentMember && (
+                            {esSocio && socioActual && (
                                 <button 
-                                    onClick={() => handleEnrollmentToggle(activity.id)}
+                                    onClick={() => alternarInscripcion(actividad.id)}
                                     className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                                        currentMember.activities.includes(activity.id)
+                                        socioActual.actividades.includes(actividad.id)
                                             ? 'bg-red-600 hover:bg-red-700 text-white'
                                             : 'bg-green-600 hover:bg-green-700 text-white'
                                     }`}
                                 >
-                                    {currentMember.activities.includes(activity.id) ? 'Darse de baja' : 'Inscribirse'}
+                                    {socioActual.actividades.includes(actividad.id) ? 'Darse de baja' : 'Inscribirse'}
                                 </button>
                             )}
                         </div>
@@ -134,11 +135,11 @@ const Actividades: React.FC = () => {
         </table>
       </div>
       
-      {isAdmin && <ActividadModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleSaveActivity}
-        activity={selectedActivity}
+      {esAdmin && <ActividadModal
+        estaAbierto={estaModalAbierto}
+        alCerrar={cerrarModal}
+        alGuardar={guardarActividad}
+        actividad={actividadSeleccionada}
       />}
     </div>
   );

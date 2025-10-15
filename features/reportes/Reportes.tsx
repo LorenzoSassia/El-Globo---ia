@@ -1,46 +1,47 @@
+
 import React, { useState, useEffect } from 'react';
 import { mockApi } from '../../services/mockApi';
-import { Member, MemberStatus, Payment } from '../../types';
+import { Socio, EstadoSocio, Pago } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
-interface WeeklyReportData {
-    paidLastWeek: (Payment & { memberName: string })[];
-    delinquent: Member[];
+interface DatosReporteSemanal {
+    pagadoUltimaSemana: (Pago & { nombreSocio: string })[];
+    morosos: Socio[];
 }
 
 const Reportes: React.FC = () => {
-    const { user } = useAuth();
-    const [report, setReport] = useState<WeeklyReportData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { usuario } = useAuth();
+    const [reporte, setReporte] = useState<DatosReporteSemanal | null>(null);
+    const [cargando, setCargando] = useState(true);
 
     useEffect(() => {
-        const generateWeeklyReport = async () => {
-            if (!user?.collectorId || user.zone === undefined) return;
-            setLoading(true);
+        const generarReporteSemanal = async () => {
+            if (!usuario?.cobradorId || usuario.zona === undefined) return;
+            setCargando(true);
 
-            const [payments, members] = await Promise.all([mockApi.getPayments(), mockApi.getMembers()]);
+            const [pagos, socios] = await Promise.all([mockApi.getPagos(), mockApi.getSocios()]);
             
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const haceSieteDias = new Date();
+            haceSieteDias.setDate(haceSieteDias.getDate() - 7);
 
-            const paidLastWeek = payments
-                .filter(p => p.collectorId === user.collectorId && new Date(p.date) >= sevenDaysAgo)
+            const pagadoUltimaSemana = pagos
+                .filter(p => p.cobradorId === usuario.cobradorId && new Date(p.fecha) >= haceSieteDias)
                 .map(p => {
-                    const member = members.find(m => m.id === p.memberId);
-                    return { ...p, memberName: member ? `${member.firstName} ${member.lastName}` : 'Socio no encontrado' };
+                    const socio = socios.find(m => m.id === p.socioId);
+                    return { ...p, nombreSocio: socio ? `${socio.nombre} ${socio.apellido}` : 'Socio no encontrado' };
                 })
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
-            const delinquent = members.filter(m => m.zone === user.zone && m.status === MemberStatus.DELINQUENT);
+            const morosos = socios.filter(m => m.zona === usuario.zona && m.estado === EstadoSocio.MOROSO);
 
-            setReport({ paidLastWeek, delinquent });
-            setLoading(false);
+            setReporte({ pagadoUltimaSemana, morosos });
+            setCargando(false);
         };
-        generateWeeklyReport();
-    }, [user]);
+        generarReporteSemanal();
+    }, [usuario]);
     
-    if (loading) return <p>Generando reporte semanal...</p>;
-    if (!report) return <p>No se pudo generar el reporte.</p>;
+    if (cargando) return <p>Generando reporte semanal...</p>;
+    if (!reporte) return <p>No se pudo generar el reporte.</p>;
 
     return (
          <div>
@@ -58,11 +59,11 @@ const Reportes: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {report.paidLastWeek.length > 0 ? report.paidLastWeek.map(p => (
+                                {reporte.pagadoUltimaSemana.length > 0 ? reporte.pagadoUltimaSemana.map(p => (
                                     <tr key={p.id} className="border-b bg-gray-800 border-gray-700">
-                                        <td className="px-6 py-4">{p.date}</td>
-                                        <td className="px-6 py-4 text-white">{p.memberName}</td>
-                                        <td className="px-6 py-4">${p.amount.toLocaleString()}</td>
+                                        <td className="px-6 py-4">{p.fecha}</td>
+                                        <td className="px-6 py-4 text-white">{p.nombreSocio}</td>
+                                        <td className="px-6 py-4">${p.monto.toLocaleString()}</td>
                                     </tr>
                                 )) : (
                                     <tr><td colSpan={3} className="px-6 py-4 text-center">No hay pagos registrados esta semana.</td></tr>
@@ -82,10 +83,10 @@ const Reportes: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {report.delinquent.length > 0 ? report.delinquent.map(m => (
+                                {reporte.morosos.length > 0 ? reporte.morosos.map(m => (
                                     <tr key={m.id} className="border-b bg-gray-800 border-gray-700">
                                         <td className="px-6 py-4">{m.id}</td>
-                                        <td className="px-6 py-4 text-white">{`${m.firstName} ${m.lastName}`}</td>
+                                        <td className="px-6 py-4 text-white">{`${m.nombre} ${m.apellido}`}</td>
                                     </tr>
                                 )) : (
                                     <tr><td colSpan={2} className="px-6 py-4 text-center">No hay socios morosos en la zona.</td></tr>

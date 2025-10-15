@@ -1,63 +1,64 @@
 
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { View } from '../App';
-import { UserRole } from '../types';
+import { Vista } from '../App';
+import { RolUsuario } from '../types';
 import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon, ArchiveIcon } from './icons';
 
 interface SidebarProps {
-  activeView: View;
-  setActiveView: (view: View) => void;
+  vistaActiva: Vista;
+  setVistaActiva: (vista: Vista) => void;
+  onCerrarSesion: () => void;
 }
 
-const NavItem: React.FC<{
-  view: View;
-  label: string;
-  icon: React.ReactNode;
-  activeView: View;
-  onClick: (view: View) => void;
-}> = ({ view, label, icon, activeView, onClick }) => (
+const ElementoNavegacion: React.FC<{
+  vista: Vista;
+  etiqueta: string;
+  icono: React.ReactNode;
+  vistaActiva: Vista;
+  onClick: (vista: Vista) => void;
+}> = ({ vista, etiqueta, icono, vistaActiva, onClick }) => (
   <li>
     <a
       href="#"
       onClick={(e) => {
         e.preventDefault();
-        onClick(view);
+        onClick(vista);
       }}
       className={`flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-700 ${
-        activeView === view ? 'bg-gray-700 text-white' : 'text-gray-400'
+        vistaActiva === vista ? 'bg-gray-700 text-white' : 'text-gray-400'
       }`}
     >
-      {icon}
-      <span className="ml-3">{label}</span>
+      {icono}
+      <span className="ml-3">{etiqueta}</span>
     </a>
   </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
-  const { user, logout } = useAuth();
+const Sidebar: React.FC<SidebarProps> = ({ vistaActiva, setVistaActiva, onCerrarSesion }) => {
+  const { usuario } = useAuth();
 
-  const adminLinks: View[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'casilleros'];
-  const cobradorLinks: View[] = ['dashboard', 'cobranzas', 'reportes'];
-  const socioLinks: View[] = ['perfil', 'actividades'];
+  const enlacesAdmin: Vista[] = ['panel', 'socios', 'cobranzas', 'actividades', 'casilleros'];
+  const enlacesCobrador: Vista[] = ['panel', 'cobranzas', 'reportes'];
+  const enlacesSocio: Vista[] = ['perfil', 'actividades'];
 
-  let availableLinks: View[] = [];
-  if (user?.role === UserRole.ADMIN) {
-    availableLinks = adminLinks;
-  } else if (user?.role === UserRole.COBRADOR) {
-    availableLinks = cobradorLinks;
-  } else if (user?.role === UserRole.SOCIO) {
-    availableLinks = socioLinks;
+  let enlacesDisponibles: Vista[] = [];
+  if (usuario?.rol === RolUsuario.ADMIN) {
+    enlacesDisponibles = enlacesAdmin;
+  } else if (usuario?.rol === RolUsuario.COBRADOR) {
+    enlacesDisponibles = enlacesCobrador;
+  } else if (usuario?.rol === RolUsuario.SOCIO) {
+    enlacesDisponibles = enlacesSocio;
   }
   
-  const allLinks: { view: View; label: string; icon: React.ReactNode }[] = [
-      { view: 'dashboard', label: 'Dashboard', icon: <HomeIcon /> },
-      { view: 'socios', label: 'Socios', icon: <UsersIcon /> },
-      { view: 'cobranzas', label: 'Cobranzas', icon: <CurrencyDollarIcon /> },
-      { view: 'actividades', label: 'Actividades', icon: <SparklesIcon /> },
-      { view: 'casilleros', label: 'Casilleros', icon: <ArchiveIcon /> },
-      { view: 'reportes', label: 'Reportes', icon: <ChartBarIcon /> },
-      { view: 'perfil', label: 'Mi Perfil', icon: <UserCircleIcon /> },
+  const todosLosEnlaces: { vista: Vista; etiqueta: string; icono: React.ReactNode }[] = [
+      { vista: 'panel', etiqueta: 'Dashboard', icono: <HomeIcon /> },
+      { vista: 'socios', etiqueta: 'Socios', icono: <UsersIcon /> },
+      { vista: 'cobranzas', etiqueta: 'Cobranzas', icono: <CurrencyDollarIcon /> },
+      { vista: 'actividades', etiqueta: 'Actividades', icono: <SparklesIcon /> },
+      { vista: 'casilleros', etiqueta: 'Casilleros', icono: <ArchiveIcon /> },
+      { vista: 'reportes', etiqueta: 'Reportes', icono: <ChartBarIcon /> },
+      { vista: 'perfil', etiqueta: 'Mi Perfil', icono: <UserCircleIcon /> },
   ];
 
   return (
@@ -67,23 +68,23 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) => {
           Club Manager
         </div>
         <ul className="space-y-2">
-          {allLinks
-            .filter(link => availableLinks.includes(link.view))
-            .map(link => (
-              <NavItem
-                key={link.view}
-                view={link.view}
-                label={link.label}
-                icon={link.icon}
-                activeView={activeView}
-                onClick={setActiveView}
+          {todosLosEnlaces
+            .filter(enlace => enlacesDisponibles.includes(enlace.vista))
+            .map(enlace => (
+              <ElementoNavegacion
+                key={enlace.vista}
+                vista={enlace.vista}
+                etiqueta={enlace.etiqueta}
+                icono={enlace.icono}
+                vistaActiva={vistaActiva}
+                onClick={setVistaActiva}
               />
           ))}
         </ul>
         <div className="mt-auto">
            <a
             href="#"
-            onClick={(e) => { e.preventDefault(); logout(); }}
+            onClick={(e) => { e.preventDefault(); onCerrarSesion(); }}
             className="flex items-center p-2 text-base font-normal text-gray-400 rounded-lg hover:bg-gray-700"
           >
             <LogoutIcon />

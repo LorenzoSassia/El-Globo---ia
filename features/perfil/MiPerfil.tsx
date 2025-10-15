@@ -1,46 +1,47 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { mockApi } from '../../services/mockApi';
-import { Member, Activity, MemberCategoryInfo } from '../../types';
+import { Socio, Actividad, InfoCategoriaSocio } from '../../types';
 
 const MiPerfil: React.FC = () => {
-    const { user } = useAuth();
-    const [memberData, setMemberData] = useState<Member | null>(null);
-    const [activities, setActivities] = useState<Activity[]>([]);
-    const [categories, setCategories] = useState<MemberCategoryInfo[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { usuario } = useAuth();
+    const [datosSocio, setDatosSocio] = useState<Socio | null>(null);
+    const [actividades, setActividades] = useState<Actividad[]>([]);
+    const [categorias, setCategorias] = useState<InfoCategoriaSocio[]>([]);
+    const [cargando, setCargando] = useState(true);
 
     useEffect(() => {
-        const loadProfile = async () => {
-            if (user?.memberId) {
+        const cargarPerfil = async () => {
+            if (usuario?.socioId) {
                 try {
-                    const [member, allActivities, allCategories] = await Promise.all([
-                        mockApi.getMember(user.memberId),
-                        mockApi.getActivities(),
-                        mockApi.getMemberCategories()
+                    const [socio, todasLasActividades, todasLasCategorias] = await Promise.all([
+                        mockApi.getSocio(usuario.socioId),
+                        mockApi.getActividades(),
+                        mockApi.getCategoriasSocios()
                     ]);
-                    setMemberData(member || null);
-                    setActivities(allActivities);
-                    setCategories(allCategories);
+                    setDatosSocio(socio || null);
+                    setActividades(todasLasActividades);
+                    setCategorias(todasLasCategorias);
                 } catch (error) {
-                    console.error("Failed to load profile data", error);
+                    console.error("Falló la carga de datos del perfil", error);
                 }
             }
-            setLoading(false);
+            setCargando(false);
         };
-        loadProfile();
-    }, [user]);
+        cargarPerfil();
+    }, [usuario]);
 
-    if (loading) {
+    if (cargando) {
         return <p className="text-center text-gray-400">Cargando perfil...</p>;
     }
 
-    if (!memberData) {
+    if (!datosSocio) {
         return <p className="text-center text-red-500">No se pudo encontrar la información del socio.</p>;
     }
     
-    const getCategoryName = (id: string) => categories.find(c => c.id === id)?.name || 'Desconocida';
-    const memberActivities = activities.filter(a => memberData.activities.includes(a.id));
+    const obtenerNombreCategoria = (id: string) => categorias.find(c => c.id === id)?.nombre || 'Desconocida';
+    const actividadesSocio = actividades.filter(a => datosSocio.actividades.includes(a.id));
 
     return (
         <div>
@@ -48,35 +49,35 @@ const MiPerfil: React.FC = () => {
             <div className="p-8 bg-gray-800 rounded-lg shadow-lg">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">{memberData.firstName} {memberData.lastName}</h2>
-                        <p className="text-gray-400">Socio N°: {memberData.id}</p>
+                        <h2 className="text-2xl font-bold text-white">{datosSocio.nombre} {datosSocio.apellido}</h2>
+                        <p className="text-gray-400">Socio N°: {datosSocio.id}</p>
                     </div>
                      <div className="md:text-right">
-                        <p className="text-lg">Estado: <span className={`font-semibold ${memberData.status === 'activo' ? 'text-green-400' : 'text-yellow-400'}`}>{memberData.status.toUpperCase()}</span></p>
+                        <p className="text-lg">Estado: <span className={`font-semibold ${datosSocio.estado === 'activo' ? 'text-green-400' : 'text-yellow-400'}`}>{datosSocio.estado.toUpperCase()}</span></p>
                     </div>
                     <div>
                         <p className="font-semibold text-gray-300">Fecha de Nacimiento:</p>
-                        <p>{memberData.birthDate}</p>
+                        <p>{datosSocio.fechaNacimiento}</p>
                     </div>
                      <div>
                         <p className="font-semibold text-gray-300">Fecha de Ingreso:</p>
-                        <p>{memberData.joinDate}</p>
+                        <p>{datosSocio.fechaIngreso}</p>
                     </div>
                      <div>
                         <p className="font-semibold text-gray-300">Categoría:</p>
-                        <p>{getCategoryName(memberData.categoryId)}</p>
+                        <p>{obtenerNombreCategoria(datosSocio.categoriaId)}</p>
                     </div>
                     <div>
                         <p className="font-semibold text-gray-300">Locker:</p>
-                        <p>{memberData.hasLocker ? 'Sí' : 'No'}</p>
+                        <p>{datosSocio.tieneCasillero ? 'Sí' : 'No'}</p>
                     </div>
                 </div>
                 <div className="pt-6 mt-6 border-t border-gray-700">
                     <h3 className="text-xl font-semibold text-white">Actividades Inscritas</h3>
-                    {memberActivities.length > 0 ? (
+                    {actividadesSocio.length > 0 ? (
                         <ul className="mt-4 space-y-2 list-disc list-inside">
-                            {memberActivities.map(activity => (
-                                <li key={activity.id} className="text-gray-300">{activity.name} - ${activity.cost}</li>
+                            {actividadesSocio.map(actividad => (
+                                <li key={actividad.id} className="text-gray-300">{actividad.nombre} - ${actividad.costo}</li>
                             ))}
                         </ul>
                     ) : (

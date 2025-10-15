@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './features/dashboard/Dashboard';
@@ -11,24 +12,28 @@ import Casilleros from './features/casilleros/Casilleros';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './features/landing/LandingPage';
 
-export type View = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros';
+export type Vista = 'panel' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros';
 
-const AppContent: React.FC = () => {
-  const { user } = useAuth();
-  const [activeView, setActiveView] = useState<View>('dashboard');
-  const [showLogin, setShowLogin] = useState(false);
+const ContenidoApp: React.FC = () => {
+  const { usuario, cerrarSesion } = useAuth();
+  const [vistaActiva, setVistaActiva] = useState<Vista>('panel');
+  const [estaIniciandoSesion, setEstaIniciandoSesion] = useState(false);
 
-  if (!user) {
-    if (showLogin) {
-      return <Login onBack={() => setShowLogin(false)} />;
+  if (!usuario) {
+    if (estaIniciandoSesion) {
+        return <Login onVolver={() => setEstaIniciandoSesion(false)} />;
     }
-    return <LandingPage onLoginClick={() => setShowLogin(true)} />;
+    return <LandingPage onIngresarClick={() => setEstaIniciandoSesion(true)} />;
   }
 
+  const manejarCierreSesion = () => {
+    cerrarSesion();
+    setEstaIniciandoSesion(false);
+  }
 
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
+  const renderizarVista = () => {
+    switch (vistaActiva) {
+      case 'panel':
         return <Dashboard />;
       case 'socios':
         return <Socios />;
@@ -43,9 +48,8 @@ const AppContent: React.FC = () => {
       case 'perfil':
         return <MiPerfil />;
       default:
-        // Default to dashboard for admin/cobrador, perfil for socio
-        if (user.role === 'socio') {
-            setActiveView('perfil');
+        if (usuario.rol === 'socio') {
+            setVistaActiva('perfil');
             return <MiPerfil />;
         }
         return <Dashboard />;
@@ -54,9 +58,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      <Sidebar vistaActiva={vistaActiva} setVistaActiva={setVistaActiva} onCerrarSesion={manejarCierreSesion} />
       <main className="flex-1 p-8 overflow-y-auto">
-        {renderView()}
+        {renderizarVista()}
       </main>
     </div>
   );
@@ -65,7 +69,7 @@ const AppContent: React.FC = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <ContenidoApp />
     </AuthProvider>
   );
 };

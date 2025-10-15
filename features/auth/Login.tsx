@@ -1,103 +1,103 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../types';
 
 interface LoginProps {
-    onBack: () => void;
+    onVolver: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onBack }) => {
-  const { login } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const Login: React.FC<LoginProps> = ({ onVolver }) => {
+  const [nombreUsuario, setNombreUsuario] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const { iniciarSesion } = useAuth();
 
-  const handleLogin = (role: UserRole) => {
-    if (username.trim() && password.trim()) {
-      login(role, username, password);
-    } else {
-      alert('Por favor ingrese un nombre de usuario y contraseña.');
+  const manejarSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nombreUsuario || !contrasena) {
+      alert('Por favor, ingrese usuario y contraseña.');
+      return;
+    }
+    setCargando(true);
+    try {
+      await iniciarSesion(nombreUsuario, contrasena);
+    } catch (error) {
+      console.error("Falló el inicio de sesión", error);
+    } finally {
+      setCargando(false);
     }
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gray-900">
-      <div className="absolute top-6 left-6">
-        <button
-            onClick={onBack}
-            className="flex items-center px-4 py-2 font-semibold text-white bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Volver
-        </button>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-lg shadow-lg">
         <div>
           <h2 className="text-3xl font-extrabold text-center text-white">
-            Club El Globo
+            Iniciar Sesión
           </h2>
-          <p className="mt-2 text-center text-gray-400">
-            Inicie sesión para continuar
+          <p className="mt-2 text-sm text-center text-gray-400">
+            Ingrese sus credenciales para acceder al sistema.
           </p>
         </div>
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="username" className="sr-only">
-              Nombre de usuario
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="relative block w-full px-3 py-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 rounded-md appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Nombre de usuario (ej: Admin)"
-            />
-          </div>
-          <div>
-             <label htmlFor="password" className="sr-only">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="relative block w-full px-3 py-2 mt-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 rounded-md appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Contraseña"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-center text-gray-400">
-              Seleccione un rol para simular el inicio de sesión:
-            </p>
-            <div className="flex flex-col space-y-2">
-              <button
-                onClick={() => handleLogin(UserRole.ADMIN)}
-                className="w-full px-4 py-2 font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Ingresar como Admin
-              </button>
-              <button
-                onClick={() => handleLogin(UserRole.COBRADOR)}
-                className="w-full px-4 py-2 font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Ingresar como Cobrador
-              </button>
-              <button
-                onClick={() => handleLogin(UserRole.SOCIO)}
-                className="w-full px-4 py-2 font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Ingresar como Socio
-              </button>
+        <form className="mt-8 space-y-6" onSubmit={manejarSubmit}>
+          <div className="space-y-4 rounded-md shadow-sm">
+            <div>
+              <label htmlFor="username" className="sr-only">Usuario</label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className="relative block w-full px-3 py-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 appearance-none rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Usuario"
+                value={nombreUsuario}
+                onChange={(e) => setNombreUsuario(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Contraseña</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="relative block w-full px-3 py-2 text-white placeholder-gray-500 bg-gray-700 border border-gray-600 appearance-none rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Contraseña"
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+              />
             </div>
           </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={cargando}
+              className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md group hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed"
+            >
+              {cargando ? 'Ingresando...' : 'Ingresar'}
+            </button>
+          </div>
+        </form>
+        
+        <div className="p-4 mt-4 text-xs text-gray-400 bg-gray-700 rounded-md">
+            <h4 className="font-bold text-gray-300">Usuarios de prueba (la contraseña puede ser cualquiera):</h4>
+            <ul className="mt-2 list-disc list-inside">
+                <li><strong className="text-gray-200">Admin:</strong> <code className="px-1 py-0.5 bg-gray-600 rounded">admin</code></li>
+                <li><strong className="text-gray-200">Cobrador:</strong> <code className="px-1 py-0.5 bg-gray-600 rounded">Roberto Carlos</code></li>
+                <li><strong className="text-gray-200">Socio:</strong> <code className="px-1 py-0.5 bg-gray-600 rounded">Juan</code></li>
+            </ul>
+        </div>
+        
+        <div className="mt-6 text-center">
+           <button 
+             onClick={onVolver}
+             className="px-6 py-2 text-sm font-semibold text-gray-300 transition bg-transparent border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white"
+           >
+                Volver a la Página Principal
+           </button>
         </div>
       </div>
     </div>

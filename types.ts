@@ -1,51 +1,52 @@
-export enum UserRole {
+
+export enum RolUsuario {
   ADMIN = 'admin',
   COBRADOR = 'cobrador',
   SOCIO = 'socio',
 }
 
-export interface User {
-  username: string;
-  role: UserRole;
-  memberId?: number;
-  collectorId?: number;
-  zone?: CollectionZone;
+export interface Usuario {
+  nombreUsuario: string;
+  rol: RolUsuario;
+  socioId?: number;
+  cobradorId?: number;
+  zona?: ZonaCobranza;
 }
 
-export enum MemberStatus {
-  ACTIVE = 'activo',
-  DELINQUENT = 'moroso',
-  INACTIVE = 'inactivo',
+export enum EstadoSocio {
+  ACTIVO = 'activo',
+  MOROSO = 'moroso',
+  INACTIVO = 'inactivo',
 }
 
-export interface Member {
+export interface Socio {
   id: number;
-  firstName: string;
-  lastName: string;
-  status: MemberStatus;
-  joinDate: string; // "YYYY-MM-DD"
-  birthDate: string; // "YYYY-MM-DD"
-  categoryId: string;
-  activities: number[];
-  hasLocker: boolean;
-  lockerNumber?: number;
-  zone: CollectionZone;
+  nombre: string;
+  apellido: string;
+  estado: EstadoSocio;
+  fechaIngreso: string; // "YYYY-MM-DD"
+  fechaNacimiento: string; // "YYYY-MM-DD"
+  categoriaId: string;
+  actividades: number[];
+  tieneCasillero: boolean;
+  numeroCasillero?: number;
+  zona: ZonaCobranza;
 }
 
-export interface Activity {
+export interface Actividad {
   id: number;
-  name: string;
-  cost: number;
-  schedule: 'matutino' | 'vespertino' | 'nocturno';
+  nombre: string;
+  costo: number;
+  horario: 'matutino' | 'vespertino' | 'nocturno';
 }
 
-export interface MemberCategoryInfo {
+export interface InfoCategoriaSocio {
   id: string;
-  name: string;
-  fee: number;
+  nombre: string;
+  cuota: number;
 }
 
-export enum CollectionZone {
+export enum ZonaCobranza {
   NORTE,
   SUR,
   ESTE,
@@ -53,23 +54,23 @@ export enum CollectionZone {
   CENTRO,
 }
 
-export interface Collector {
+export interface Cobrador {
     id: number;
-    name: string;
-    zone: CollectionZone;
+    nombre: string;
+    zona: ZonaCobranza;
 }
 
-export interface CollectionReport {
-    collectorId: number;
-    amount: number;
-    commission: number;
-    net: number;
+export interface ReporteCobranza {
+    cobradorId: number;
+    monto: number;
+    comision: number;
+    neto: number;
 }
 
-export interface Payment {
+export interface Pago {
     id: number;
-    memberId: number;
-    collectorId: number;
-    amount: number;
-    date: string; // "YYYY-MM-DD"
+    socioId: number;
+    cobradorId: number;
+    monto: number;
+    fecha: string; // "YYYY-MM-DD"
 }
