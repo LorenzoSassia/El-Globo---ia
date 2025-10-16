@@ -79,3 +79,15 @@ export const ArchiveIcon: React.FC = () => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
     </IconWrapper>
 );
+
+export const BriefcaseIcon: React.FC = () => (
+    <IconWrapper>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </IconWrapper>
+);
+
+export const UserRemoveIcon: React.FC = () => (
+    <IconWrapper>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zm12-2h-6" />
+    </IconWrapper>
+);

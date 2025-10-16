@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Usuario } from '../types';
 import { api } from '../services/api';
 
@@ -13,34 +13,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
+  useEffect(() => {
+    // Al cargar la app, intentar restaurar la sesión desde localStorage
+    try {
+      const token = localStorage.getItem('authToken');
+      const storedUser = localStorage.getItem('authUser');
+      if (token && storedUser) {
+        setUsuario(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Error al restaurar la sesión:", error);
+      // Limpiar en caso de datos corruptos
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+    }
+  }, []);
+
+
   const iniciarSesion = async (nombreUsuario: string, contrasena: string) => {
     try {
-      const datosUsuario: any = await api.login(nombreUsuario, contrasena);
-      if (datosUsuario && datosUsuario.id) {
-        // En un caso real, el token JWT se guardaría aquí.
-        // Por ahora, guardamos los datos del usuario en el estado.
-        setUsuario({
-          id: datosUsuario.id,
-          usuario: datosUsuario.usuario,
-          rol: datosUsuario.rol,
-          socioId: datosUsuario.socioId,
-          cobradorId: datosUsuario.cobradorId,
-          zonaId: datosUsuario.zonaId,
-        });
+      const { token, usuario: datosUsuario } = await api.login(nombreUsuario, contrasena);
+      if (token && datosUsuario) {
+        // Guardar el token y los datos del usuario para persistencia
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('authUser', JSON.stringify(datosUsuario));
+        setUsuario(datosUsuario);
       } else {
-        // La API debería devolver un error 401 que sería capturado por el catch.
-        // Este es un fallback.
-        throw new Error('Credenciales inválidas');
+        throw new Error('La respuesta del servidor no contiene token o usuario.');
       }
     } catch (error) {
       console.error('Falló el inicio de sesión:', error);
-      // Relanzamos el error para que el componente de Login pueda manejarlo
+      // Limpiar cualquier dato antiguo en caso de fallo
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
       throw error;
     }
   };
 
   const cerrarSesion = () => {
-    // En un caso real, se limpiaría el token JWT.
+    // Limpiar token y datos de usuario para cerrar sesión
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
     setUsuario(null);
   };
 

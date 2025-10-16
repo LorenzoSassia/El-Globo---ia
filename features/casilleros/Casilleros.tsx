@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Socio, Casillero } from '../../types';
-import { PlusIcon, PencilIcon, TrashIcon } from '../../components/icons';
+import { PlusIcon, PencilIcon, TrashIcon, UserRemoveIcon } from '../../components/icons';
+import CasilleroModal from './CasilleroModal';
 
 const Casilleros: React.FC = () => {
     const [casilleros, setCasilleros] = useState<Casillero[]>([]);
     const [socios, setSocios] = useState<Socio[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingCasillero, setEditingCasillero] = useState<Casillero | null>(null);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedCasillero, setSelectedCasillero] = useState<Casillero | null>(null);
     
-    // Estado del formulario del modal
     const [idSocioSeleccionado, setIdSocioSeleccionado] = useState<string>('');
 
     const cargarDatos = async () => {
@@ -32,35 +33,54 @@ const Casilleros: React.FC = () => {
 
     const sociosSinCasillero = socios.filter(s => !s.casilleros_id);
 
-    const handleAbrirModal = (casillero: Casillero) => {
-        setEditingCasillero(casillero);
-        setIdSocioSeleccionado(casillero.socio?.id.toString() || '');
-        setIsModalOpen(true);
+    const handleAbrirModalAsignacion = (casillero: Casillero) => {
+        setSelectedCasillero(casillero);
+        setIdSocioSeleccionado('');
+        setIsAssignModalOpen(true);
+    };
+    
+    const handleAbrirModalEdicion = (casillero: Casillero | null = null) => {
+        setSelectedCasillero(casillero);
+        setIsEditModalOpen(true);
     };
 
-    const handleCerrarModal = () => {
-        setIsModalOpen(false);
-        setEditingCasillero(null);
+    const handleCerrarModales = () => {
+        setIsAssignModalOpen(false);
+        setIsEditModalOpen(false);
+        setSelectedCasillero(null);
     };
 
-    const handleGuardar = async () => {
-        if (!editingCasillero || !idSocioSeleccionado) {
+    const handleGuardarAsignacion = async () => {
+        if (!selectedCasillero || !idSocioSeleccionado) {
             alert('Por favor, seleccione un socio.');
             return;
         }
         
         try {
             const socioId = parseInt(idSocioSeleccionado, 10);
-            // Asignar el casillero al nuevo socio
-            await api.updateSocio(socioId, { casilleros_id: editingCasillero.id });
-            // Marcar el casillero como ocupado
-            await api.updateCasillero(editingCasillero.id, { estado: 'Ocupado' });
+            await api.updateSocio(socioId, { casilleros_id: selectedCasillero.id });
+            await api.updateCasillero(selectedCasillero.id, { estado: 'Ocupado' });
             
             cargarDatos();
-            handleCerrarModal();
+            handleCerrarModales();
         } catch (error) {
             console.error("Error al asignar casillero:", error);
             alert("No se pudo asignar el casillero.");
+        }
+    };
+
+    const handleGuardarCasillero = async (casilleroData: Omit<Casillero, 'id' | 'socio' | 'estado'>) => {
+        try {
+            if (selectedCasillero && selectedCasillero.id) { // Editando
+                await api.updateCasillero(selectedCasillero.id, casilleroData);
+            } else { // Creando
+                await api.addCasillero({ ...casilleroData, estado: 'Libre' });
+            }
+            cargarDatos();
+            handleCerrarModales();
+        } catch (error) {
+            console.error("Error al guardar casillero:", error);
+            alert("No se pudo guardar el casillero.");
         }
     };
     
@@ -68,9 +88,7 @@ const Casilleros: React.FC = () => {
         if (window.confirm('¿Está seguro de que desea liberar este casillero?')) {
             if (!casillero.socio) return;
             try {
-                // Quitar la asignación del casillero al socio
-                await api.updateSocio(casillero.socio.id, { casilleros_id: null });
-                // Marcar el casillero como libre
+                await api.updateSocio(casillero.socio.id, { casilleros_id: undefined });
                 await api.updateCasillero(casillero.id, { estado: 'Libre' });
                 cargarDatos();
             } catch (error) {
@@ -80,11 +98,26 @@ const Casilleros: React.FC = () => {
         }
     };
 
+    const handleEliminarCasillero = async (id: number) => {
+        if (window.confirm('¿Está seguro de que desea eliminar este casillero? Esta acción no se puede deshacer.')) {
+            try {
+                await api.deleteCasillero(id);
+                cargarDatos();
+            } catch (error) {
+                console.error("Error al eliminar casillero:", error);
+                alert("No se pudo eliminar el casillero.");
+            }
+        }
+    };
+
     return (
         <div>
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-white">Gestión de Casilleros</h1>
-                {/* Botón de "Nuevo" no es necesario si la lista de casilleros es fija */}
+                <button onClick={() => handleAbrirModalEdicion(null)} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                    <PlusIcon />
+                    <span className="ml-2">Nuevo Casillero</span>
+                </button>
             </div>
 
             <div className="overflow-x-auto bg-gray-800 rounded-lg">
@@ -94,6 +127,7 @@ const Casilleros: React.FC = () => {
                             <th scope="col" className="px-6 py-3">N° Casillero</th>
                             <th scope="col" className="px-6 py-3">Estado</th>
                             <th scope="col" className="px-6 py-3">Socio Asignado</th>
+                             <th scope="col" className="px-6 py-3">Monto Mensual</th>
                             <th scope="col" className="px-6 py-3">Acciones</th>
                         </tr>
                     </thead>
@@ -107,11 +141,16 @@ const Casilleros: React.FC = () => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">{casillero.socio ? `${casillero.socio.nombre} ${casillero.socio.apellido}` : '---'}</td>
+                                <td className="px-6 py-4">${casillero.monto_mensual.toLocaleString()}</td>
                                 <td className="flex items-center px-6 py-4 space-x-3">
+                                    <button onClick={() => handleAbrirModalEdicion(casillero)} className="text-blue-500 hover:text-blue-400" title="Editar"><PencilIcon /></button>
                                     {casillero.estado === 'Libre' ? (
-                                        <button onClick={() => handleAbrirModal(casillero)} className="text-blue-500 hover:text-blue-400"><PlusIcon /></button>
+                                        <>
+                                            <button onClick={() => handleAbrirModalAsignacion(casillero)} className="text-green-500 hover:text-green-400" title="Asignar"><PlusIcon /></button>
+                                            <button onClick={() => handleEliminarCasillero(casillero.id)} className="text-red-500 hover:text-red-400" title="Eliminar"><TrashIcon /></button>
+                                        </>
                                     ) : (
-                                        <button onClick={() => handleLiberarCasillero(casillero)} className="text-red-500 hover:text-red-400"><TrashIcon /></button>
+                                        <button onClick={() => handleLiberarCasillero(casillero)} className="text-yellow-500 hover:text-yellow-400" title="Liberar"><UserRemoveIcon /></button>
                                     )}
                                 </td>
                             </tr>
@@ -119,12 +158,18 @@ const Casilleros: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            
+            <CasilleroModal
+                isOpen={isEditModalOpen}
+                onClose={handleCerrarModales}
+                onSave={handleGuardarCasillero}
+                casillero={selectedCasillero}
+            />
 
-            {/* Modal de Asignación */}
-            {isModalOpen && editingCasillero && (
+            {isAssignModalOpen && selectedCasillero && (
                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
                     <div className="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-xl">
-                        <h2 className="text-2xl font-bold text-white">Asignar Casillero N° {editingCasillero.nro_casillero}</h2>
+                        <h2 className="text-2xl font-bold text-white">Asignar Casillero N° {selectedCasillero.nro_casillero}</h2>
                         <div className="mt-4 space-y-4">
                             <div>
                                 <label htmlFor="socio" className="block mb-2 text-sm font-medium text-gray-300">Socio a Asignar</label>
@@ -137,8 +182,8 @@ const Casilleros: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex justify-end pt-6 space-x-2">
-                            <button type="button" onClick={handleCerrarModal} className="px-4 py-2 font-semibold text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
-                            <button type="button" onClick={handleGuardar} className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">Asignar</button>
+                            <button type="button" onClick={handleCerrarModales} className="px-4 py-2 font-semibold text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">Cancelar</button>
+                            <button type="button" onClick={handleGuardarAsignacion} className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">Asignar</button>
                         </div>
                     </div>
                 </div>

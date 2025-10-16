@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Actividad, Socio } from '../../types';
 import { api } from '../../services/api';
@@ -11,6 +12,8 @@ const Actividades: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null);
   const [socioActual, setSocioActual] = useState<Socio | null>(null);
+  const [filtroNombre, setFiltroNombre] = useState('');
+  const [filtroTurno, setFiltroTurno] = useState('Todos');
 
   useEffect(() => {
     cargarActividades();
@@ -38,22 +41,39 @@ const Actividades: React.FC = () => {
   };
   
   const handleAlternarInscripcion = async (actividadId: number) => {
-      if (!socioActual) return;
-      
-      const isEnrolled = socioActual.actividades?.some(a => a.id === actividadId);
-      
-      try {
-        if (isEnrolled) {
-            await api.desinscribirSocioActividad(socioActual.id, actividadId);
-        } else {
-            await api.inscribirSocioActividad(socioActual.id, actividadId);
-        }
-        // Recargar datos del socio para reflejar el cambio
-        cargarDatosSocio();
-      } catch (error) {
-          console.error("Error al cambiar la inscripción:", error);
-          alert("No se pudo actualizar la inscripción.");
-      }
+    if (!socioActual) return;
+
+    const isEnrolled = socioActual.actividades?.some(a => a.id === actividadId);
+    const actividadSeleccionada = actividades.find(a => a.id === actividadId);
+
+    if (!actividadSeleccionada) {
+        console.error("Actividad no encontrada");
+        return;
+    }
+
+    let nuevasActividades;
+
+    if (isEnrolled) {
+        nuevasActividades = socioActual.actividades?.filter(a => a.id !== actividadId) || [];
+    } else {
+        nuevasActividades = [...(socioActual.actividades || []), actividadSeleccionada];
+    }
+    
+    const socioActualizadoPayload = {
+        ...socioActual,
+        actividades: nuevasActividades,
+    };
+
+    try {
+        // Usar el endpoint existente para actualizar el objeto completo del socio
+        await api.updateSocio(socioActual.id, socioActualizadoPayload);
+        
+        // Recargar los datos del socio para reflejar el cambio en la UI
+        await cargarDatosSocio();
+    } catch (error) {
+        console.error("Error al cambiar la inscripción:", error);
+        alert("No se pudo actualizar la inscripción.");
+    }
   };
 
   const handleAbrirModal = (actividad: Actividad | null = null) => {
@@ -96,9 +116,15 @@ const Actividades: React.FC = () => {
   const isAdmin = usuario?.rol === 'admin';
   const isSocio = usuario?.rol === 'socio';
 
+  const actividadesFiltradas = actividades.filter(act => {
+    const matchNombre = act.nombre.toLowerCase().includes(filtroNombre.toLowerCase());
+    const matchTurno = filtroTurno === 'Todos' || act.turno === filtroTurno;
+    return matchNombre && matchTurno;
+  });
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-bold text-white">Actividades del Club</h1>
         {isAdmin && (
             <button onClick={() => handleAbrirModal()} className="flex items-center px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
@@ -106,6 +132,35 @@ const Actividades: React.FC = () => {
                 <span className="ml-2">Nueva Actividad</span>
             </button>
         )}
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-gray-800 rounded-lg">
+          <div className="flex-grow">
+              <input
+                  id="search-activity"
+                  type="text"
+                  value={filtroNombre}
+                  onChange={(e) => setFiltroNombre(e.target.value)}
+                  placeholder="Buscar por nombre..."
+                  className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+              <span className="text-gray-400">Turno:</span>
+              {['Todos', 'Mañana', 'Tarde', 'Noche', 'Mañana - Tarde'].map(turno => (
+                  <button
+                      key={turno}
+                      onClick={() => setFiltroTurno(turno)}
+                      className={`px-3 py-1 text-sm rounded-full transition ${
+                          filtroTurno === turno 
+                              ? 'bg-blue-600 text-white font-semibold'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                  >
+                      {turno}
+                  </button>
+              ))}
+          </div>
       </div>
 
       <div className="overflow-x-auto bg-gray-800 rounded-lg">
@@ -120,7 +175,7 @@ const Actividades: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {actividades.map((actividad) => (
+            {actividadesFiltradas.map((actividad) => (
               <tr key={actividad.id} className="border-b bg-gray-800 border-gray-700 hover:bg-gray-600">
                 <td className="px-6 py-4">{actividad.id}</td>
                 <td className="px-6 py-4 text-white">{actividad.nombre}</td>

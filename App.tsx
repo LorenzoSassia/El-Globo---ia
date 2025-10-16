@@ -10,8 +10,9 @@ import Login from './features/auth/Login';
 import Casilleros from './features/casilleros/Casilleros';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './features/landing/LandingPage';
+import Cobradores from './features/cobradores/Cobradores';
 
-export type Vista = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros';
+export type Vista = 'dashboard' | 'socios' | 'cobranzas' | 'actividades' | 'reportes' | 'perfil' | 'casilleros' | 'cobradores';
 
 const AppContent: React.FC = () => {
   const { usuario, cerrarSesion } = useAuth();
@@ -36,6 +37,8 @@ const AppContent: React.FC = () => {
         return <Dashboard />;
       case 'socios':
         return <Socios />;
+      case 'cobradores':
+        return <Cobradores />;
       case 'cobranzas':
         return <Cobranzas />;
       case 'actividades':

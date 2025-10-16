@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Vista } from '../App';
-import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon, ArchiveIcon } from './icons';
+import { HomeIcon, UsersIcon, CurrencyDollarIcon, SparklesIcon, ChartBarIcon, UserCircleIcon, LogoutIcon, ArchiveIcon, BriefcaseIcon } from './icons';
 
 interface SidebarProps {
   vistaActiva: Vista;
@@ -37,7 +37,7 @@ const NavItem: React.FC<{
 const Sidebar: React.FC<SidebarProps> = ({ vistaActiva, setVistaActiva, onCerrarSesion }) => {
   const { usuario } = useAuth();
 
-  const adminLinks: Vista[] = ['dashboard', 'socios', 'cobranzas', 'actividades', 'casilleros'];
+  const adminLinks: Vista[] = ['dashboard', 'socios', 'cobradores', 'cobranzas', 'actividades', 'casilleros'];
   const cobradorLinks: Vista[] = ['dashboard', 'cobranzas', 'reportes'];
   const socioLinks: Vista[] = ['perfil', 'actividades'];
 
@@ -53,6 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ vistaActiva, setVistaActiva, onCerrar
   const allLinks: { vista: Vista; label: string; icon: React.ReactNode }[] = [
       { vista: 'dashboard', label: 'Dashboard', icon: <HomeIcon /> },
       { vista: 'socios', label: 'Socios', icon: <UsersIcon /> },
+      { vista: 'cobradores', label: 'Cobradores', icon: <BriefcaseIcon /> },
       { vista: 'cobranzas', label: 'Cobranzas', icon: <CurrencyDollarIcon /> },
       { vista: 'actividades', label: 'Actividades', icon: <SparklesIcon /> },
       { vista: 'casilleros', label: 'Casilleros', icon: <ArchiveIcon /> },
